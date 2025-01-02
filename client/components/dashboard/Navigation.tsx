@@ -72,8 +72,23 @@ const navigation: NavItem[] = [
 
 export default function Navigation({ isCollapsed }: NavigationProps) {
   const pathname = usePathname();
-  const { data: session } = useSession();
-  const userRole = session?.user?.role as UserRole;
+  const { data: session, status } = useSession();
+  const userRole = (session?.user?.role as UserRole) || 'STAFF';
+
+  // Show all navigation items while loading to prevent layout shift
+  if (status === 'loading') {
+    return (
+      <nav className="mt-4">
+        <ul className="space-y-1 px-3">
+          {navigation.map((item) => (
+            <li key={item.name} className="animate-pulse">
+              <div className="h-10 bg-gray-100 rounded-lg"></div>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    );
+  }
 
   const filteredNavigation = navigation.filter(item => 
     item.allowedRoles.includes(userRole)

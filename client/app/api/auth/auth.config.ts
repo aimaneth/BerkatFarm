@@ -75,18 +75,15 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Always allow the dashboard URL
-      if (url.startsWith('/dashboard')) {
-        return `${baseUrl}/dashboard`;
-      }
-      // Allow relative URLs
+      // Handle relative URLs
       if (url.startsWith('/')) {
         return `${baseUrl}${url}`;
       }
-      // Allow same origin URLs
+      // Handle same origin URLs
       if (url.startsWith(baseUrl)) {
         return url;
       }
+      // Default to base URL
       return baseUrl;
     }
   },
