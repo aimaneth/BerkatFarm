@@ -1,70 +1,34 @@
 # Berkat Farm Management System
 
-A modern, full-stack farm management application commissioned by Berkat Farm Trading. Built with Next.js, TypeScript, and MongoDB, this system helps farmers manage their livestock, team members, and distribution operations efficiently.
+A comprehensive farm management system built with Next.js and Node.js.
 
-![Berkat Farm Management System](public/images/hero-bg.jpg)
+## Project Structure
 
-> This project is a commissioned work developed for Berkat Farm Trading by Aiman Asyraf.
+The project is divided into two main parts:
 
-## Features
+- `client/`: Next.js frontend application
+- `server/`: Node.js/Express backend API
+- `shared/`: Shared types and constants between frontend and backend
 
-- 🌾 **Modern Dashboard**
-  - Clean and intuitive interface
-  - Real-time data updates
-  - Responsive design for all devices
-
-- 🐮 **Livestock Management**
-  - Track health records
-  - Monitor breeding cycles
-  - Manage inventory
-  - Record medical history
-
-- 👥 **Team Management**
-  - Staff scheduling
-  - Task assignment
-  - Performance monitoring
-  - Role-based access control
-
-- 🚛 **Distribution Tracking**
-  - Order management
-  - Real-time delivery tracking
-  - Customer database
-  - Inventory control
-
-- 📊 **Analytics & Reports**
-  - Custom report generation
-  - Performance metrics
-  - Financial insights
-  - Trend analysis
-
-## Tech Stack
+## Technologies Used
 
 ### Frontend
-- Next.js 14 (App Router)
+- Next.js 13+ with App Router
 - TypeScript
 - Tailwind CSS
-- React Query
-- NextAuth.js
-- Socket.io Client
-- Heroicons
+- NextAuth.js for authentication
+- Mapbox for mapping features
 
 ### Backend
-- Node.js
-- Express
-- MongoDB
-- Socket.io
-- JWT Authentication
-
-### DevOps
-- Docker
-- Docker Compose
-- GitHub Actions (CI/CD)
+- Node.js with Express
+- TypeScript
+- MongoDB with Mongoose
+- Socket.IO for real-time features
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- Docker and Docker Compose
+- Node.js 16+
 - MongoDB
 - Git
 
@@ -72,8 +36,8 @@ A modern, full-stack farm management application commissioned by Berkat Farm Tra
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/berkat-farm.git
-cd berkat-farm
+git clone <your-repository-url>
+cd Berkat-Farm
 ```
 
 2. Install dependencies:
@@ -88,78 +52,39 @@ npm install
 ```
 
 3. Set up environment variables:
-```bash
-# Client (.env.local)
-NEXT_PUBLIC_API_URL=http://localhost:3001
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-key
-MONGODB_URI=your-mongodb-uri
 
-# Server (.env)
-PORT=3001
-MONGODB_URI=your-mongodb-uri
-JWT_SECRET=your-jwt-secret
+Create `.env.local` in the client directory with:
+```
+MONGODB_URI=your_mongodb_uri
+NEXTAUTH_URL=http://localhost:3001
+NEXTAUTH_SECRET=your_secret_key
+NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token
+NEXT_PUBLIC_MAPBOX_STYLE_URL=your_mapbox_style_url
 ```
 
-4. Run with Docker:
-```bash
-docker-compose up --build
-```
+4. Start the development servers:
 
-Or run locally:
 ```bash
-# Start the client (in client directory)
+# Start the backend server
+cd server
 npm run dev
 
-# Start the server (in server directory)
+# In a new terminal, start the frontend
+cd client
 npm run dev
 ```
 
-### Project Structure
+The frontend will be available at `http://localhost:3001` and the backend at `http://localhost:5000`.
 
-```
-berkat-farm/
-├── client/                 # Frontend application
-│   ├── app/               # Next.js app directory
-│   ├── components/        # Reusable components
-│   ├── shared/           # Shared types and utilities
-│   └── public/           # Static assets
-├── server/                # Backend application
-│   ├── src/              # Source code
-│   ├── controllers/      # Route controllers
-│   ├── models/          # Database models
-│   └── services/        # Business logic
-└── shared/               # Shared code between client and server
-```
+## Features
 
-## Development
-
-### Code Style
-- ESLint for code linting
-- Prettier for code formatting
-- Husky for pre-commit hooks
-
-### Testing
-```bash
-# Run frontend tests
-cd client
-npm test
-
-# Run backend tests
-cd server
-npm test
-```
-
-### Building for Production
-```bash
-# Build frontend
-cd client
-npm run build
-
-# Build backend
-cd server
-npm run build
-```
+- User authentication and authorization
+- Farm activity tracking
+- Livestock management
+- Distribution tracking
+- Team management
+- Real-time updates
+- Interactive maps
 
 ## Contributing
 
@@ -171,26 +96,4 @@ npm run build
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Next.js team for the amazing framework
-- Tailwind CSS for the utility-first CSS framework
-- MongoDB team for the reliable database
-- All contributors who have helped shape this project
-
-## Contact
-
-**Client**: 
-Berkat Farm Trading
-- Website: [https://berkatfarm.com](https://berkatfarm.com)
-
-**Developer**:
-Aiman Asyraf - [@aimaneth](https://x.com/aimaneth)
-
-Project Link: [https://github.com/aimaneth/berkat-farm](https://github.com/aimaneth/berkat-farm)
-
----
-
-Commissioned by Berkat Farm Trading. Developed with ❤️ by [Aiman Asyraf]
+This project is licensed under the MIT License.
