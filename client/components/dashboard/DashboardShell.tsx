@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navigation from './Navigation';
-import Header from './Header';
+import { Header } from './Header';
 
 interface DashboardShellProps {
   children: React.ReactNode;

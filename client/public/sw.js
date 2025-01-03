@@ -1,138 +1,125 @@
-const CACHE_NAME = 'berkat-farm-cache-v1';
-const OFFLINE_URL = '/offline.html';
-
-const urlsToCache = [
+const CACHE_NAME = 'berkat-farm-v1';
+const STATIC_ASSETS = [
   '/',
-  '/offline.html',
-  '/dashboard',
-  '/dashboard/livestock',
-  '/dashboard/orders',
-  '/dashboard/inventory',
-  '/dashboard/analytics',
+  '/index.html',
   '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
+  '/images/logo-192.png',
+  '/images/logo-512.png',
+  '/images/livestock.png',
+  '/images/orders.png',
+  '/images/inventory.png'
 ];
 
-// Install Service Worker
+// Check if a URL should be cached
+function shouldCache(url) {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+  } catch (e) {
+    return false;
+  }
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        // Cache each asset individually to prevent complete failure if one fails
+        return Promise.allSettled(
+          STATIC_ASSETS.map(url =>
+            fetch(new Request(url, { cache: 'reload' }))
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error(`Failed to fetch ${url}`);
+                }
+                return cache.put(url, response);
+              })
+              .catch(error => {
+                console.warn(`Failed to cache ${url}:`, error);
+              })
+          )
+        );
       })
+      .catch((error) => {
+        console.error('Failed to cache static assets:', error);
+      })
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    Promise.all([
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      self.clients.claim()
+    ])
   );
 });
 
-// Listen for requests
 self.addEventListener('fetch', (event) => {
+  // Early return for non-GET requests or non-HTTP(S) URLs
+  if (event.request.method !== 'GET' || !shouldCache(event.request.url)) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Cache hit - return response
         if (response) {
           return response;
         }
 
-        return fetch(event.request)
+        // Clone the request because it can only be used once
+        const fetchRequest = event.request.clone();
+
+        return fetch(fetchRequest)
           .then((response) => {
             // Check if we received a valid response
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
-            // Clone the response
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
+            // Only cache same-origin requests
+            if (shouldCache(event.request.url) && 
+                new URL(event.request.url).origin === location.origin) {
+              try {
+                // Clone the response because it can only be used once
+                const responseToCache = response.clone();
+                
+                caches.open(CACHE_NAME)
+                  .then((cache) => {
+                    cache.put(event.request, responseToCache)
+                      .catch(error => {
+                        console.warn('Cache put failed:', error);
+                      });
+                  })
+                  .catch(error => {
+                    console.warn('Cache open failed:', error);
+                  });
+              } catch (error) {
+                console.warn('Caching failed:', error);
+              }
+            }
 
             return response;
           })
           .catch(() => {
-            // If the request fails, return the offline page for navigation requests
-            if (event.request.mode === 'navigate') {
-              return caches.match(OFFLINE_URL);
+            // Return fallback for image requests
+            if (event.request.destination === 'image') {
+              return caches.match('/images/logo-192.png')
+                .catch(error => {
+                  console.warn('Fallback image fetch failed:', error);
+                });
             }
           });
       })
   );
-});
-
-// Clean up old caches
-self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
-
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-});
-
-// Handle sync events for offline data
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-livestock-data') {
-    event.waitUntil(syncLivestockData());
-  }
-});
-
-// Function to sync livestock data
-async function syncLivestockData() {
-  try {
-    const db = await openDB();
-    const offlineData = await db.getAll('offlineStore');
-    
-    if (offlineData.length === 0) return;
-
-    // Attempt to sync each piece of offline data
-    const syncPromises = offlineData.map(async (data) => {
-      try {
-        const response = await fetch('/api/livestock/sync', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (response.ok) {
-          // Remove synced data from IndexedDB
-          await db.delete('offlineStore', data.id);
-        }
-      } catch (error) {
-        console.error('Sync failed for item:', data.id, error);
-      }
-    });
-
-    await Promise.all(syncPromises);
-  } catch (error) {
-    console.error('Sync failed:', error);
-  }
-}
-
-// Helper function to open IndexedDB
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('BerkatFarmDB', 1);
-
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('offlineStore')) {
-        db.createObjectStore('offlineStore', { keyPath: 'id' });
-      }
-    };
-  });
-} 
+}); 
