@@ -2,6 +2,8 @@
 
 A comprehensive farm management system built with Next.js and Node.js. This system helps manage livestock, team members, distribution operations, financial transactions, and farm activities efficiently.
 
+![Screenshot_3-1-2025_142936_localhost](https://github.com/user-attachments/assets/11b88325-0fd8-4a06-9938-088e44f2e9df)
+
 ## Project Structure
 
 ```
