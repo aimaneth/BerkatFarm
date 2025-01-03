@@ -10,7 +10,9 @@ import {
   CogIcon,
   UserCircleIcon,
   TruckIcon,
-  BeakerIcon
+  BeakerIcon,
+  ShoppingCartIcon,
+  ArchiveBoxIcon
 } from '@heroicons/react/24/outline';
 import { UserRole } from '@/shared/types/auth';
 
@@ -45,9 +47,9 @@ const navigation: NavItem[] = [
     allowedRoles: ['ADMIN', 'MANAGER', 'VETERINARIAN', 'STAFF']
   },
   { 
-    name: 'Distribution', 
-    href: '/dashboard/distribution', 
-    icon: TruckIcon,
+    name: 'Orders', 
+    href: '/dashboard/orders', 
+    icon: ShoppingCartIcon,
     allowedRoles: ['ADMIN', 'MANAGER', 'STAFF']
   },
   { 
