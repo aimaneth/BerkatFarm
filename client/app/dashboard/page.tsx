@@ -520,11 +520,11 @@ export default function DashboardPage() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Milk Production Chart */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden bg-white">
           <div className="border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
             <h2 className="text-sm sm:text-base font-semibold text-gray-900">Milk Production Trend</h2>
           </div>
-          <div className="p-2 sm:p-4">
+          <div className="p-2 sm:p-4 bg-white">
             <div className="h-[250px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={milkProductionData}>
@@ -552,11 +552,11 @@ export default function DashboardPage() {
         </Card>
 
         {/* Revenue vs Expenses */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden bg-white">
           <div className="border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
             <h2 className="text-sm sm:text-base font-semibold text-gray-900">Revenue vs Expenses</h2>
           </div>
-          <div className="p-2 sm:p-4">
+          <div className="p-2 sm:p-4 bg-white">
             <div className="h-[250px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={revenueData}>
@@ -576,11 +576,11 @@ export default function DashboardPage() {
       {/* Health and Feed Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Animal Health Distribution */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden bg-white">
           <div className="border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
             <h2 className="text-sm sm:text-base font-semibold text-gray-900">Animal Health Distribution</h2>
           </div>
-          <div className="p-2 sm:p-4">
+          <div className="p-2 sm:p-4 bg-white">
             <div className="h-[200px] sm:h-[300px] flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -613,11 +613,11 @@ export default function DashboardPage() {
         </Card>
 
         {/* Feed Consumption Analytics */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden bg-white">
           <div className="border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
             <h2 className="text-sm sm:text-base font-semibold text-gray-900">Feed Consumption vs Target</h2>
           </div>
-          <div className="p-2 sm:p-4">
+          <div className="p-2 sm:p-4 bg-white">
             <div className="h-[200px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -641,11 +641,11 @@ export default function DashboardPage() {
       {/* Feed Inventory and Tasks Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Feed Inventory */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden bg-white">
           <div className="border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
             <h2 className="text-sm sm:text-base font-semibold text-gray-900">Feed Inventory Status</h2>
           </div>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 bg-white">
             {feedInventory.map((item) => (
               <div key={item.type} className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
@@ -673,11 +673,11 @@ export default function DashboardPage() {
         </Card>
 
         {/* Upcoming Tasks */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden bg-white">
           <div className="border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
             <h2 className="text-sm sm:text-base font-semibold text-gray-900">Upcoming Tasks</h2>
           </div>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 bg-white">
             {upcomingTasks.map((task) => (
               <div key={task.id} className="p-3 sm:p-4">
                 <div className="flex items-center">
@@ -701,11 +701,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Health Status Overview */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden bg-white">
         <div className="border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
           <h2 className="text-sm sm:text-base font-semibold text-gray-900">Health Status Overview</h2>
         </div>
-        <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 bg-white">
           {healthAlerts.map((alert) => (
             <div key={alert.id} className={`p-3 sm:p-4 rounded-lg ${
               alert.status === 'urgent' 
@@ -741,11 +741,11 @@ export default function DashboardPage() {
       </Card>
 
       {/* Financial Insights */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden bg-white">
         <div className="border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
           <h2 className="text-sm sm:text-base font-semibold text-gray-900">Financial Insights</h2>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
+        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-200 bg-white">
           {financialInsights.map((insight) => (
             <div key={insight.title} className="p-4 sm:p-6">
               <div className="flex items-center gap-3 mb-2">
@@ -767,11 +767,11 @@ export default function DashboardPage() {
       </Card>
 
       {/* Animal Lifecycle Management */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden bg-white">
         <div className="border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
           <h2 className="text-sm sm:text-base font-semibold text-gray-900">Animal Lifecycle Management</h2>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-white">
           {animalLifecycle.map((category) => (
             <div
               key={category.category}
@@ -831,11 +831,11 @@ export default function DashboardPage() {
       </Card>
 
       {/* Resource Utilization */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden bg-white">
         <div className="border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
           <h2 className="text-sm sm:text-base font-semibold text-gray-900">Resource Utilization</h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-gray-200">
+        <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-gray-200 bg-white">
           {resourceMetrics.map((metric) => (
             <div key={metric.name} className="p-4">
               <div className="flex items-center gap-2 mb-2">
@@ -865,11 +865,11 @@ export default function DashboardPage() {
       </Card>
 
       {/* Recent Activities */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden bg-white">
         <div className="border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
           <h2 className="text-sm sm:text-base font-semibold text-gray-900">Recent Activities</h2>
         </div>
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-gray-200 bg-white">
           {recentActivities.map((activity) => (
             <div key={activity.id} className="p-3 sm:p-4 hover:bg-gray-50">
               <div className="flex items-center">
