@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/Dialog";
+import {
   Search as SearchIcon,
   Calendar as CalendarIcon,
   User as CustomerIcon,
@@ -19,7 +26,9 @@ import {
   BarChart2 as StatsIcon,
   Plus as PlusIcon,
   Truck as TruckIcon,
+  Filter as FilterIcon,
 } from 'lucide-react';
+import { OrderForm } from '@/components/orders/OrderForm';
 
 interface OrderItem {
   id: string;
@@ -33,11 +42,12 @@ interface OrderItem {
 
 interface OrderDelivery {
   address: string;
-  status: 'scheduled' | 'in-transit' | 'completed';
+  status: 'scheduled' | 'in-transit' | 'completed' | 'failed';
   date: string;
   driver?: string;
   vehicle?: string;
   destination?: string;
+  notes?: string;
 }
 
 interface Order {
@@ -45,9 +55,31 @@ interface Order {
   customer: string;
   date: string;
   total: number;
-  status: 'pending' | 'processing' | 'in-transit' | 'completed' | 'cancelled';
+  status: 'draft' | 'pending' | 'confirmed' | 'processing' | 'in-transit' | 'completed' | 'cancelled' | 'returned';
   items: OrderItem[];
   delivery: OrderDelivery;
+  paymentStatus: 'pending' | 'partial' | 'completed';
+  notes?: string;
+  tags?: string[];
+}
+
+interface OrderFormData {
+  customer: string;
+  items: {
+    productId: string;
+    quantity: number;
+  }[];
+  delivery: {
+    address: string;
+    destination: string;
+    driver: string;
+    vehicle: string;
+    scheduledDate: string;
+    notes: string;
+  };
+  notes: string;
+  status: string;
+  paymentStatus: string;
 }
 
 const mockOrders: Order[] = [
@@ -84,7 +116,9 @@ const mockOrders: Order[] = [
       driver: 'John Smith',
       vehicle: 'Truck-01',
       destination: 'City Center Branch'
-    }
+    },
+    paymentStatus: 'pending',
+    notes: 'Large order for the city center branch'
   },
   // Add more mock orders...
 ];
@@ -99,11 +133,14 @@ const orderStats = {
 };
 
 const statusColors: Record<Order['status'], string> = {
+  draft: 'bg-gray-100 text-gray-800',
   pending: 'bg-yellow-100 text-yellow-800',
-  processing: 'bg-blue-100 text-blue-800',
+  confirmed: 'bg-blue-100 text-blue-800',
+  processing: 'bg-indigo-100 text-indigo-800',
   'in-transit': 'bg-purple-100 text-purple-800',
   completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800'
+  cancelled: 'bg-red-100 text-red-800',
+  returned: 'bg-orange-100 text-orange-800'
 };
 
 export default function OrdersPage() {
@@ -112,14 +149,27 @@ export default function OrdersPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [sortBy, setSortBy] = useState('latest');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState({
+    minAmount: '',
+    maxAmount: '',
+    deliveryArea: '',
+    driver: '',
+    paymentStatus: 'all',
+  });
 
   const statusOptions = [
     { value: 'all', label: 'All Status' },
+    { value: 'draft', label: 'Draft' },
     { value: 'pending', label: 'Pending' },
+    { value: 'confirmed', label: 'Confirmed' },
     { value: 'processing', label: 'Processing' },
     { value: 'in-transit', label: 'In Transit' },
     { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' }
+    { value: 'cancelled', label: 'Cancelled' },
+    { value: 'returned', label: 'Returned' }
   ];
 
   const categoryOptions = [
@@ -135,6 +185,13 @@ export default function OrdersPage() {
     { value: 'price-low', label: 'Price: Low to High' }
   ];
 
+  const paymentStatusOptions = [
+    { value: 'all', label: 'All Payment Status' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'partial', label: 'Partial' },
+    { value: 'completed', label: 'Completed' }
+  ];
+
   const filteredOrders = mockOrders.filter(order => {
     const matchesSearch = 
       order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -145,7 +202,18 @@ export default function OrdersPage() {
     const matchesCategory = categoryFilter === 'all' || 
       order.items.some(item => item.category === categoryFilter);
 
-    return matchesSearch && matchesStatus && matchesCategory;
+    // Advanced filters
+    const matchesAmount = (!advancedFilters.minAmount || order.total >= Number(advancedFilters.minAmount)) &&
+      (!advancedFilters.maxAmount || order.total <= Number(advancedFilters.maxAmount));
+    const matchesDeliveryArea = !advancedFilters.deliveryArea || 
+      order.delivery.destination?.toLowerCase().includes(advancedFilters.deliveryArea.toLowerCase());
+    const matchesDriver = !advancedFilters.driver ||
+      order.delivery.driver?.toLowerCase().includes(advancedFilters.driver.toLowerCase());
+    const matchesPaymentStatus = advancedFilters.paymentStatus === 'all' || 
+      order.paymentStatus === advancedFilters.paymentStatus;
+
+    return matchesSearch && matchesStatus && matchesCategory && 
+      matchesAmount && matchesDeliveryArea && matchesDriver && matchesPaymentStatus;
   }).sort((a, b) => {
     switch (sortBy) {
       case 'oldest':
@@ -268,6 +336,20 @@ export default function OrdersPage() {
       {/* Filters and Search */}
       <Card className="overflow-hidden bg-gradient-to-br from-white to-emerald-50/30">
         <div className="p-4 sm:p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-medium text-gray-700">Filters</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="flex items-center gap-2"
+            >
+              <FilterIcon className="h-4 w-4" />
+              {showAdvancedFilters ? 'Hide Advanced Filters' : 'Show Advanced Filters'}
+            </Button>
+          </div>
+
+          {/* Basic Filters */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Search */}
             <div>
@@ -346,6 +428,84 @@ export default function OrdersPage() {
               </Select>
             </div>
           </div>
+
+          {/* Advanced Filters */}
+          {showAdvancedFilters && (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Min Amount
+                </label>
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={advancedFilters.minAmount}
+                  onChange={(e) => setAdvancedFilters({ ...advancedFilters, minAmount: e.target.value })}
+                  className="bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Max Amount
+                </label>
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={advancedFilters.maxAmount}
+                  onChange={(e) => setAdvancedFilters({ ...advancedFilters, maxAmount: e.target.value })}
+                  className="bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Area
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Enter area..."
+                  value={advancedFilters.deliveryArea}
+                  onChange={(e) => setAdvancedFilters({ ...advancedFilters, deliveryArea: e.target.value })}
+                  className="bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Driver
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Enter driver name..."
+                  value={advancedFilters.driver}
+                  onChange={(e) => setAdvancedFilters({ ...advancedFilters, driver: e.target.value })}
+                  className="bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Payment Status
+                </label>
+                <Select 
+                  value={advancedFilters.paymentStatus} 
+                  onValueChange={(value) => setAdvancedFilters({ ...advancedFilters, paymentStatus: value })}
+                >
+                  <SelectTrigger className="w-full bg-white">
+                    <SelectValue placeholder="Select payment status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {paymentStatusOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value} className="hover:bg-gray-100">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
 
           {/* Date Range */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
@@ -477,6 +637,46 @@ export default function OrdersPage() {
           </Card>
         ))}
       </div>
+
+      {/* Create/Edit Order Modal */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedOrder ? 'Edit Order' : 'Create New Order'}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedOrder ? 'Update the order details below' : 'Enter the order details below'}
+            </DialogDescription>
+          </DialogHeader>
+          <OrderForm
+            initialData={selectedOrder ? {
+              customer: selectedOrder.customer,
+              items: selectedOrder.items.map(item => ({
+                productId: item.id,
+                quantity: item.quantity
+              })),
+              delivery: {
+                address: selectedOrder.delivery.address,
+                destination: selectedOrder.delivery.destination || '',
+                driver: selectedOrder.delivery.driver || '',
+                vehicle: selectedOrder.delivery.vehicle || '',
+                scheduledDate: selectedOrder.delivery.date,
+                notes: selectedOrder.delivery.notes || ''
+              },
+              notes: selectedOrder.notes || '',
+              status: selectedOrder.status,
+              paymentStatus: selectedOrder.paymentStatus
+            } : undefined}
+            onSubmit={(data) => {
+              console.log('Form submitted:', data);
+              // TODO: Implement API call to create/update order
+              setIsCreateModalOpen(false);
+            }}
+            onCancel={() => setIsCreateModalOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

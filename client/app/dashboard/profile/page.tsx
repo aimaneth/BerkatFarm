@@ -24,12 +24,11 @@ import {
   Shield as PrivacyIcon,
   Bell as NotificationIcon,
 } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
+import { showNotification } from "@/lib/notifications";
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
@@ -49,16 +48,16 @@ export default function ProfilePage() {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      toast({
+      showNotification({
         title: "Profile Updated",
-        description: "Your profile has been updated successfully.",
-        variant: "success",
+        message: "Your profile has been updated successfully.",
+        type: "success"
       });
     } catch (error) {
-      toast({
+      showNotification({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
+        message: "Failed to update profile. Please try again.",
+        type: "error"
       });
     } finally {
       setIsLoading(false);

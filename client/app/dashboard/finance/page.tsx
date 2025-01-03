@@ -55,15 +55,35 @@ export default function FinancePage() {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="bg-white">
-          <TabsTrigger value="analytics" className="hover:bg-gray-100">Analytics</TabsTrigger>
-          <TabsTrigger value="invoices" className="hover:bg-gray-100">Invoices</TabsTrigger>
-          <TabsTrigger value="budgets" className="hover:bg-gray-100">Budgets</TabsTrigger>
-          <TabsTrigger value="recurring" className="hover:bg-gray-100">Recurring</TabsTrigger>
-          <TabsTrigger value="tax" className="hover:bg-gray-100">Tax</TabsTrigger>
-          <TabsTrigger value="reports" className="hover:bg-gray-100">Reports</TabsTrigger>
-          <TabsTrigger value="payments" className="hover:bg-gray-100">Payments</TabsTrigger>
-        </TabsList>
+        <div className="border-b border-gray-200">
+          <div className="scrollbar-none overflow-x-auto">
+            <TabsList className="w-full flex-none inline-flex min-w-full">
+              <div className="flex gap-2 p-1">
+                <TabsTrigger value="analytics" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Analytics
+                </TabsTrigger>
+                <TabsTrigger value="invoices" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Invoices
+                </TabsTrigger>
+                <TabsTrigger value="budgets" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Budgets
+                </TabsTrigger>
+                <TabsTrigger value="recurring" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Recurring
+                </TabsTrigger>
+                <TabsTrigger value="tax" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Tax
+                </TabsTrigger>
+                <TabsTrigger value="reports" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Reports
+                </TabsTrigger>
+                <TabsTrigger value="payments" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Payments
+                </TabsTrigger>
+              </div>
+            </TabsList>
+          </div>
+        </div>
 
         <TabsContent value="analytics">
           <Analytics transactions={transactions} />

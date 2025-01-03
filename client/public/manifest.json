@@ -1,0 +1,60 @@
+{
+  "name": "Berkat Farm Management",
+  "short_name": "Berkat Farm",
+  "description": "Comprehensive farm management system for livestock, inventory, and operations",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "any",
+  "categories": ["business", "productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Livestock",
+      "url": "/dashboard/livestock",
+      "icons": [{ "src": "/icons/livestock.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Orders",
+      "url": "/dashboard/orders",
+      "icons": [{ "src": "/icons/orders.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Inventory",
+      "url": "/dashboard/inventory",
+      "icons": [{ "src": "/icons/inventory.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/screenshots/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Dashboard Overview"
+    },
+    {
+      "src": "/screenshots/livestock.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Livestock Management"
+    }
+  ]
+} 

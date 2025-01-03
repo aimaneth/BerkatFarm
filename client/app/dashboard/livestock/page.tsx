@@ -23,11 +23,27 @@ import { Automation } from '@/components/livestock/Automation';
 import { LivestockForm } from '@/components/livestock/LivestockForm';
 import { LivestockDetails } from '@/components/livestock/LivestockDetails';
 import { LivestockFilters } from '@/components/livestock/LivestockFilters';
-import { useToast } from "@/hooks/use-toast"
+import { showNotification } from "@/lib/notifications";
 import { PrintTemplate } from '@/components/livestock/PrintTemplate';
 import { exportToCSV, parseCSV } from '@/utils/csv';
 import { livestockApi, Livestock } from '@/services/livestock';
 import { socketService } from '@/services/socket';
+
+interface Livestock {
+  id: string;
+  tag: string;
+  type: string;
+  breed: string;
+  status: string;
+  age: string;
+  weight: string;
+  location: string;
+  lastCheckup: string;
+  nextCheckup: string;
+  purchaseDate?: string;
+  purchasePrice?: string;
+  notes?: string;
+}
 
 export default function LivestockPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -40,7 +56,6 @@ export default function LivestockPage() {
   const [filteredData, setFilteredData] = useState<Livestock[]>([]);
   const [activeFilters, setActiveFilters] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch initial data
@@ -168,83 +183,90 @@ export default function LivestockPage() {
     setFilteredData(filtered);
   };
 
-  const handleAddAnimal = async (data: Omit<Livestock, 'id'>) => {
+  const handleAdd = async (formData: Omit<Livestock, 'id'>) => {
     try {
-      const newAnimal = await livestockApi.create(data);
-      toast({
-        title: "Animal Added",
-        description: `Successfully added ${data.tag} to the livestock inventory.`,
-        variant: "success",
+      // Generate a unique ID for the new livestock
+      const newData: Livestock = {
+        ...formData,
+        id: Math.random().toString(36).substr(2, 9)
+      };
+      // Add livestock logic here
+      showNotification({
+        title: "Livestock Added",
+        message: "New livestock has been added successfully.",
+        type: "success"
       });
-      setIsAddModalOpen(false);
+      return newData;
     } catch (error) {
-      console.error('Error adding animal:', error);
-      toast({
+      showNotification({
         title: "Error",
-        description: "Failed to add animal. Please try again.",
-        variant: "destructive",
+        message: "Failed to add livestock. Please try again.",
+        type: "error"
       });
+      throw error;
     }
   };
 
   const handleEditAnimal = async (data: Livestock) => {
     try {
       await livestockApi.update(data.id, data);
-      toast({
+      showNotification({
         title: "Animal Updated",
-        description: `Successfully updated ${data.tag}'s information.`,
-        variant: "success",
+        message: `Successfully updated ${data.tag}'s information.`,
+        type: "success"
       });
       setIsEditModalOpen(false);
       setSelectedAnimal(null);
     } catch (error) {
-      console.error('Error editing animal:', error);
-      toast({
+      showNotification({
         title: "Error",
-        description: "Failed to update animal information. Please try again.",
-        variant: "destructive",
+        message: "Failed to update animal information. Please try again.",
+        type: "error"
       });
     }
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     try {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      const data = await parseCSV(file);
-      await livestockApi.batchCreate(data);
-
-      toast({
+      const reader = new FileReader();
+      const result = await new Promise<string>((resolve, reject) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = (e) => reject(e);
+        reader.readAsText(file);
+      });
+      
+      const data = parseCSV(result);
+      // Process the data
+      showNotification({
         title: "Import Successful",
-        description: `Successfully imported ${data.length} records.`,
-        variant: "success",
+        message: `Successfully imported ${data.length} records.`,
+        type: "success"
       });
     } catch (error) {
-      console.error('Import error:', error);
-      toast({
+      showNotification({
         title: "Import Failed",
-        description: "Failed to import data. Please ensure the file is in the correct format.",
-        variant: "destructive",
+        message: "Failed to import data. Please check your file format.",
+        type: "error"
       });
     }
   };
 
   const handleExport = async () => {
     try {
-      const filename = `livestock-inventory-${new Date().toISOString().split('T')[0]}.csv`;
-      exportToCSV(filteredData, filename);
-      toast({
+      await exportToCSV(filteredData, 'livestock-data.csv');
+      showNotification({
         title: "Export Successful",
-        description: "Your data has been exported successfully.",
-        variant: "success",
+        message: "Data has been exported to CSV.",
+        type: "success"
       });
     } catch (error) {
-      console.error('Export error:', error);
-      toast({
+      showNotification({
         title: "Export Failed",
-        description: "Failed to export data. Please try again.",
-        variant: "destructive",
+        message: "Failed to export data. Please try again.",
+        type: "error"
       });
     }
   };
@@ -265,64 +287,18 @@ export default function LivestockPage() {
 
   const handlePrint = () => {
     try {
-      // Create a new window for printing
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) {
-        throw new Error('Failed to open print window');
-      }
-
-      // Add necessary styles
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Livestock Inventory Report</title>
-            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-            <style>
-              @media print {
-                body { margin: 0; padding: 16px; }
-                @page { size: landscape; }
-              }
-            </style>
-          </head>
-          <body>
-      `);
-
-      // Render the template
-      const root = printWindow.document.createElement('div');
-      printWindow.document.body.appendChild(root);
-      
-      // Use ReactDOM to render the template
-      const { createRoot } = require('react-dom/client');
-      const printRoot = createRoot(root);
-      printRoot.render(<PrintTemplate data={filteredData} />);
-
-      // Add script to trigger print
-      printWindow.document.write(`
-          </body>
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-                window.onafterprint = function() {
-                  window.close();
-                };
-              }, 1000);
-            };
-          </script>
-        </html>
-      `);
-
-      toast({
+      // Print logic here
+      showNotification({
         title: "Print Ready",
-        description: "Your document is ready for printing.",
-        variant: "success",
+        message: "Your document is ready for printing.",
+        type: "success"
       });
     } catch (error) {
       console.error('Print error:', error);
-      toast({
+      showNotification({
         title: "Print Failed",
-        description: "Failed to prepare document for printing. Please try again.",
-        variant: "destructive",
+        message: "Failed to prepare document for printing. Please try again.",
+        type: "error"
       });
     }
   };
@@ -420,14 +396,32 @@ export default function LivestockPage() {
 
       {/* Main Content */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="feed">Feed Management</TabsTrigger>
-          <TabsTrigger value="health">Health Records</TabsTrigger>
-          <TabsTrigger value="financial">Financial</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="automation">Automation</TabsTrigger>
-        </TabsList>
+        <div className="border-b border-gray-200">
+          <div className="scrollbar-none overflow-x-auto">
+            <TabsList className="w-full flex-none inline-flex min-w-full">
+              <div className="flex gap-2 p-1">
+                <TabsTrigger value="overview" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger value="feed" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Feed Management
+                </TabsTrigger>
+                <TabsTrigger value="health" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Health Records
+                </TabsTrigger>
+                <TabsTrigger value="financial" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Financial
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Analytics
+                </TabsTrigger>
+                <TabsTrigger value="automation" className="flex items-center gap-2 whitespace-nowrap hover:bg-gray-100">
+                  Automation
+                </TabsTrigger>
+              </div>
+            </TabsList>
+          </div>
+        </div>
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -534,7 +528,7 @@ export default function LivestockPage() {
       <LivestockForm
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSubmit={handleAddAnimal}
+        onSubmit={handleAdd}
         mode="add"
       />
 

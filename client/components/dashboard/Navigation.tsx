@@ -12,7 +12,9 @@ import {
   TruckIcon,
   BeakerIcon,
   ShoppingCartIcon,
-  ArchiveBoxIcon
+  ArchiveBoxIcon,
+  ChartPieIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
 import { UserRole } from '@/shared/types/auth';
 
@@ -41,10 +43,22 @@ const navigation: NavItem[] = [
     allowedRoles: ['ADMIN', 'MANAGER', 'SUPERVISOR']
   },
   { 
+    name: 'Tasks', 
+    href: '/dashboard/tasks', 
+    icon: ClipboardDocumentListIcon,
+    allowedRoles: ['ADMIN', 'MANAGER', 'STAFF', 'VETERINARIAN', 'SUPERVISOR']
+  },
+  { 
     name: 'Livestock', 
     href: '/dashboard/livestock', 
     icon: BeakerIcon,
     allowedRoles: ['ADMIN', 'MANAGER', 'VETERINARIAN', 'STAFF']
+  },
+  { 
+    name: 'Inventory', 
+    href: '/dashboard/inventory', 
+    icon: ArchiveBoxIcon,
+    allowedRoles: ['ADMIN', 'MANAGER', 'STAFF']
   },
   { 
     name: 'Orders', 
@@ -56,6 +70,12 @@ const navigation: NavItem[] = [
     name: 'Finance', 
     href: '/dashboard/finance', 
     icon: ChartBarIcon,
+    allowedRoles: ['ADMIN', 'MANAGER', 'ACCOUNTANT']
+  },
+  { 
+    name: 'Analytics', 
+    href: '/dashboard/analytics', 
+    icon: ChartPieIcon,
     allowedRoles: ['ADMIN', 'MANAGER', 'ACCOUNTANT']
   },
   { 

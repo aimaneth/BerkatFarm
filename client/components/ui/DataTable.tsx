@@ -2,136 +2,228 @@
 
 import { useState } from 'react';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/input';
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
-
-export interface Column<T> {
-  header: string;
-  accessorKey: keyof T;
-  cell?: (value: T[keyof T]) => React.ReactNode;
-}
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Loader2
+} from 'lucide-react';
+import { Button } from './Button';
+import { Card } from './Card';
 
 interface DataTableProps<T> {
   data: T[];
-  columns: Column<T>[];
-  searchKey?: keyof T;
-  onRowClick?: (row: T) => void;
+  columns: {
+    key: string;
+    title: string;
+    render?: (item: T) => React.ReactNode;
+  }[];
   isLoading?: boolean;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
+  currentPage?: number;
+  totalItems?: number;
 }
 
-export function DataTable<T extends object>({
+export function DataTable<T>({
   data,
   columns,
-  searchKey,
-  onRowClick,
-  isLoading,
+  isLoading = false,
+  pageSize = 10,
+  onPageChange,
+  currentPage = 1,
+  totalItems = 0,
 }: DataTableProps<T>) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  const handlePageChange = (page: number) => {
+    if (onPageChange) {
+      onPageChange(page);
+    }
+  };
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="animate-pulse h-10 bg-gray-200 rounded" />
-        <div className="space-y-2">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="animate-pulse h-16 bg-gray-100 rounded" />
+      <Card className="p-6 bg-white">
+        <div className="space-y-4">
+          {[...Array(5)].map((_, index) => (
+            <div
+              key={index}
+              className="animate-pulse flex items-center space-x-4"
+            >
+              {columns.map((column, colIndex) => (
+                <div
+                  key={colIndex}
+                  className="h-4 bg-gray-200 rounded flex-1"
+                ></div>
+              ))}
+            </div>
           ))}
         </div>
-      </div>
+      </Card>
     );
   }
 
-  // Filter data based on search query
-  const filteredData = searchKey
-    ? data.filter((item) => {
-        const value = item[searchKey];
-        return value && String(value).toLowerCase().includes(searchQuery.toLowerCase());
-      })
-    : data;
-
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
-
   return (
-    <div className="space-y-4">
-      {searchKey && (
-        <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      )}
-
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
+    <Card className="bg-white overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
               {columns.map((column) => (
-                <TableHead key={String(column.accessorKey)}>{column.header}</TableHead>
+                <th
+                  key={column.key}
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {column.title}
+                </th>
               ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.map((row, rowIndex) => (
-              <TableRow
-                key={rowIndex}
-                onClick={() => onRowClick?.(row)}
-                className={onRowClick ? 'cursor-pointer hover:bg-gray-100' : ''}
-              >
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {data.map((item, index) => (
+              <tr key={index}>
                 {columns.map((column) => (
-                  <TableCell key={String(column.accessorKey)}>
-                    {column.cell
-                      ? column.cell(row[column.accessorKey])
-                      : String(row[column.accessorKey] || '')}
-                  </TableCell>
+                  <td
+                    key={column.key}
+                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                  >
+                    {column.render
+                      ? column.render(item)
+                      // @ts-ignore - Dynamic access to object property
+                      : item[column.key]}
+                  </td>
                 ))}
-              </TableRow>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeftIcon className="h-4 w-4" />
-          </Button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            <ChevronRightIcon className="h-4 w-4" />
-          </Button>
+        <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <Button
+              variant="outline"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing{' '}
+                <span className="font-medium">
+                  {(currentPage - 1) * pageSize + 1}
+                </span>{' '}
+                to{' '}
+                <span className="font-medium">
+                  {Math.min(currentPage * pageSize, totalItems)}
+                </span>{' '}
+                of <span className="font-medium">{totalItems}</span> results
+              </p>
+            </div>
+            <div>
+              <nav
+                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
+              >
+                <Button
+                  variant="outline"
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                >
+                  <span className="sr-only">First</span>
+                  <ChevronsLeft className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <span className="sr-only">Previous</span>
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                {/* Page Numbers */}
+                {[...Array(totalPages)].map((_, index) => {
+                  const pageNumber = index + 1;
+                  const isCurrentPage = pageNumber === currentPage;
+
+                  // Show current page and 2 pages before and after
+                  if (
+                    pageNumber === 1 ||
+                    pageNumber === totalPages ||
+                    (pageNumber >= currentPage - 2 &&
+                      pageNumber <= currentPage + 2)
+                  ) {
+                    return (
+                      <Button
+                        key={pageNumber}
+                        variant={isCurrentPage ? 'default' : 'outline'}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          isCurrentPage
+                            ? 'z-10 bg-emerald-50 border-emerald-500 text-emerald-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                        onClick={() => handlePageChange(pageNumber)}
+                      >
+                        {pageNumber}
+                      </Button>
+                    );
+                  }
+
+                  // Show ellipsis
+                  if (
+                    pageNumber === currentPage - 3 ||
+                    pageNumber === currentPage + 3
+                  ) {
+                    return (
+                      <span
+                        key={pageNumber}
+                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+
+                  return null;
+                })}
+                <Button
+                  variant="outline"
+                  className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <span className="sr-only">Next</span>
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  onClick={() => handlePageChange(totalPages)}
+                  disabled={currentPage === totalPages}
+                >
+                  <span className="sr-only">Last</span>
+                  <ChevronsRight className="h-5 w-5" />
+                </Button>
+              </nav>
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 } 

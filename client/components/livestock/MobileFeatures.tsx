@@ -1,257 +1,183 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import {
-  Scan,
-  Camera,
-  Mic,
-  Wifi,
+  Smartphone,
   WifiOff,
-  Upload,
-  Image as ImageIcon,
-  Tag,
-  Save,
-  RefreshCw,
+  Database,
+  RotateCcw,
+  Camera,
+  Share2,
+  QrCode,
 } from 'lucide-react';
-
-const offlineData = [
-  {
-    id: 1,
-    type: 'Weight Record',
-    animal: 'COW-123',
-    timestamp: '2024-01-20 14:30',
-    status: 'Pending Sync',
-    data: '545 kg',
-  },
-  {
-    id: 2,
-    type: 'Health Check',
-    animal: 'COW-456',
-    timestamp: '2024-01-20 15:15',
-    status: 'Synced',
-    data: 'Temperature: 38.5°C',
-  },
-];
-
-const recentPhotos = [
-  {
-    id: 1,
-    animal: 'COW-789',
-    type: 'Health Documentation',
-    timestamp: '2024-01-20 13:45',
-    status: 'Uploaded',
-    notes: 'Wound healing progress',
-  },
-  {
-    id: 2,
-    animal: 'COW-234',
-    type: 'Body Condition',
-    timestamp: '2024-01-20 14:00',
-    status: 'Pending Upload',
-    notes: 'Monthly condition assessment',
-  },
-];
-
-const voiceNotes = [
-  {
-    id: 1,
-    animal: 'COW-567',
-    duration: '0:45',
-    timestamp: '2024-01-20 11:30',
-    status: 'Transcribed',
-    notes: 'Behavioral observations',
-  },
-  {
-    id: 2,
-    animal: 'COW-890',
-    duration: '1:20',
-    timestamp: '2024-01-20 12:15',
-    status: 'Pending Transcription',
-    notes: 'Feeding pattern notes',
-  },
-];
+import { showNotification } from '@/lib/notifications';
 
 export function MobileFeatures() {
+  const [isOnline, setIsOnline] = useState(true);
+  const [hasPendingSync, setHasPendingSync] = useState(false);
+
+  useEffect(() => {
+    // Set up online/offline listeners
+    const handleOnline = () => {
+      setIsOnline(true);
+      showNotification({
+        title: "Back Online",
+        message: "Your connection has been restored. Data will sync automatically.",
+        type: "success"
+      });
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      showNotification({
+        title: "Offline Mode",
+        message: "You're now working offline. Changes will sync when connection is restored.",
+        type: "warning"
+      });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Check initial state
+    setIsOnline(navigator.onLine);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const handleSync = async () => {
+    try {
+      // Sync logic would go here
+      showNotification({
+        title: "Sync Complete",
+        message: "Your data has been synchronized successfully.",
+        type: "success"
+      });
+      setHasPendingSync(false);
+    } catch (error) {
+      showNotification({
+        title: "Sync Failed",
+        message: "Failed to synchronize data. Please try again.",
+        type: "error"
+      });
+    }
+  };
+
+  const handleScanQR = () => {
+    // QR scanning logic would go here
+    showNotification({
+      title: "QR Scanner",
+      message: "QR scanning feature coming soon!",
+      type: "info"
+    });
+  };
+
+  const handleTakePhoto = () => {
+    // Photo capture logic would go here
+    showNotification({
+      title: "Camera",
+      message: "Photo capture feature coming soon!",
+      type: "info"
+    });
+  };
+
+  const handleShare = () => {
+    // Sharing logic would go here
+    showNotification({
+      title: "Share",
+      message: "Sharing feature coming soon!",
+      type: "info"
+    });
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Quick Actions */}
-        <Card className="p-4 sm:p-6 bg-white">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-24 space-y-2"
-            >
-              <Scan className="w-6 h-6 text-blue-500" />
-              <span className="text-sm">Scan Tag</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-24 space-y-2"
-            >
-              <Camera className="w-6 h-6 text-green-500" />
-              <span className="text-sm">Take Photo</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-24 space-y-2"
-            >
-              <Mic className="w-6 h-6 text-purple-500" />
-              <span className="text-sm">Voice Note</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-24 space-y-2"
-            >
-              <Save className="w-6 h-6 text-red-500" />
-              <span className="text-sm">Quick Save</span>
-            </Button>
+    <Card className="p-4 bg-white space-y-4">
+      {/* Connection Status */}
+      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-center gap-2">
+          {isOnline ? (
+            <Smartphone className="w-5 h-5 text-emerald-500" />
+          ) : (
+            <WifiOff className="w-5 h-5 text-yellow-500" />
+          )}
+          <div>
+            <p className="text-sm font-medium text-gray-900">
+              {isOnline ? 'Online Mode' : 'Offline Mode'}
+            </p>
+            <p className="text-xs text-gray-500">
+              {isOnline 
+                ? 'All changes sync automatically' 
+                : 'Changes will sync when connection is restored'}
+            </p>
           </div>
-        </Card>
-
-        {/* Offline Data */}
-        <Card className="p-4 sm:p-6 bg-white">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Offline Data</h3>
-            <Button variant="outline" size="sm">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Sync Now
-            </Button>
-          </div>
-          <div className="space-y-4">
-            {offlineData.map((item) => (
-              <div
-                key={item.id}
-                className="p-4 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-3">
-                    <Tag className="w-5 h-5 text-blue-500" />
-                    <div>
-                      <p className="font-medium text-gray-900">{item.animal}</p>
-                      <p className="text-sm text-gray-500">{item.type}</p>
-                    </div>
-                  </div>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center ${
-                    item.status === 'Synced'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {item.status === 'Synced' ? (
-                      <Wifi className="w-3 h-3 mr-1" />
-                    ) : (
-                      <WifiOff className="w-3 h-3 mr-1" />
-                    )}
-                    {item.status}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div>
-                    <p className="text-xs text-gray-500">Data</p>
-                    <p className="text-sm font-medium text-gray-900">{item.data}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Timestamp</p>
-                    <p className="text-sm font-medium text-gray-900">{item.timestamp}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Photo Documentation */}
-        <Card className="p-4 sm:p-6 bg-white">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Photo Documentation</h3>
-            <Button variant="outline" size="sm">
-              <Upload className="w-4 h-4 mr-2" />
-              Upload All
-            </Button>
-          </div>
-          <div className="space-y-4">
-            {recentPhotos.map((photo) => (
-              <div
-                key={photo.id}
-                className="p-4 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-3">
-                    <ImageIcon className="w-5 h-5 text-indigo-500" />
-                    <div>
-                      <p className="font-medium text-gray-900">{photo.animal}</p>
-                      <p className="text-sm text-gray-500">{photo.type}</p>
-                    </div>
-                  </div>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    photo.status === 'Uploaded'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {photo.status}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div>
-                    <p className="text-xs text-gray-500">Notes</p>
-                    <p className="text-sm font-medium text-gray-900">{photo.notes}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Timestamp</p>
-                    <p className="text-sm font-medium text-gray-900">{photo.timestamp}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Voice Notes */}
-        <Card className="p-4 sm:p-6 bg-white">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Voice Notes</h3>
-            <Button variant="outline" size="sm">
-              <Mic className="w-4 h-4 mr-2" />
-              Record New
-            </Button>
-          </div>
-          <div className="space-y-4">
-            {voiceNotes.map((note) => (
-              <div
-                key={note.id}
-                className="p-4 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-3">
-                    <Mic className="w-5 h-5 text-purple-500" />
-                    <div>
-                      <p className="font-medium text-gray-900">{note.animal}</p>
-                      <p className="text-sm text-gray-500">{note.notes}</p>
-                    </div>
-                  </div>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    note.status === 'Transcribed'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {note.status}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div>
-                    <p className="text-xs text-gray-500">Duration</p>
-                    <p className="text-sm font-medium text-gray-900">{note.duration}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Timestamp</p>
-                    <p className="text-sm font-medium text-gray-900">{note.timestamp}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+        </div>
+        {hasPendingSync && isOnline && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleSync}
+            className="bg-white"
+          >
+            <RotateCcw className="w-4 h-4 mr-1" />
+            Sync Now
+          </Button>
+        )}
       </div>
-    </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-3 gap-3">
+        <Button
+          variant="outline"
+          className="flex flex-col items-center gap-1 h-auto py-3 bg-white"
+          onClick={handleScanQR}
+        >
+          <QrCode className="w-5 h-5" />
+          <span className="text-xs">Scan QR</span>
+        </Button>
+        <Button
+          variant="outline"
+          className="flex flex-col items-center gap-1 h-auto py-3 bg-white"
+          onClick={handleTakePhoto}
+        >
+          <Camera className="w-5 h-5" />
+          <span className="text-xs">Take Photo</span>
+        </Button>
+        <Button
+          variant="outline"
+          className="flex flex-col items-center gap-1 h-auto py-3 bg-white"
+          onClick={handleShare}
+        >
+          <Share2 className="w-5 h-5" />
+          <span className="text-xs">Share</span>
+        </Button>
+      </div>
+
+      {/* Offline Data */}
+      <div className="p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <Database className="w-5 h-5 text-gray-400" />
+          <p className="text-sm font-medium text-gray-900">Offline Data</p>
+        </div>
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">Livestock Records</span>
+            <span className="text-gray-900">Last synced: 5 mins ago</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">Health Records</span>
+            <span className="text-gray-900">Last synced: 10 mins ago</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">Feed Data</span>
+            <span className="text-gray-900">Last synced: 15 mins ago</span>
+          </div>
+        </div>
+      </div>
+    </Card>
   );
 } 
