@@ -2,6 +2,8 @@
 
 This is the frontend application for the Berkat Farm Management System, built with Next.js 13+ and modern web technologies.
 
+![Screenshot_3-1-2025_14382_localhost](https://github.com/user-attachments/assets/ce3d08f8-c2a9-4c90-8910-c3951252a64d)
+
 ## Features
 
 - 📱 Responsive design for all devices
