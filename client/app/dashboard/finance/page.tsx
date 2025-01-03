@@ -1,39 +1,98 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Card } from '@/components/ui/Card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Analytics } from '@/components/finance/Analytics';
+import { InvoiceManagement } from '@/components/finance/InvoiceManagement';
+import { BudgetManagement } from '@/components/finance/BudgetManagement';
+import { RecurringTransactions } from '@/components/finance/RecurringTransactions';
+import { TaxManagement } from '@/components/finance/TaxManagement';
+import { Reports } from '@/components/finance/Reports';
+import { PaymentIntegration } from '@/components/finance/PaymentIntegration';
+
+const transactions = [
+  {
+    id: 1,
+    type: 'expense',
+    category: 'Feed & Supplies',
+    amount: 2500.00,
+    date: '2024-02-20',
+    status: 'completed',
+  },
+  {
+    id: 2,
+    type: 'income',
+    category: 'Livestock Sale',
+    amount: 5000.00,
+    date: '2024-02-19',
+    status: 'completed',
+  },
+  {
+    id: 3,
+    type: 'expense',
+    category: 'Veterinary Services',
+    amount: 800.00,
+    date: '2024-02-18',
+    status: 'completed',
+  },
+];
 
 export default function FinancePage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  if (status === 'loading') {
-    return <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-    </div>;
-  }
-
-  if (status === 'unauthenticated') {
-    router.push('/auth/login');
-    return null;
-  }
+  const [activeTab, setActiveTab] = useState('analytics');
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Financial Management</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage your farm's finances and transactions
-          </p>
-        </div>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Finance Management</h1>
+        <p className="text-sm text-gray-500">
+          Track and manage your farm's financial performance
+        </p>
       </div>
 
-      <Card className="p-6">
-        <p>Financial management content will go here.</p>
-      </Card>
+      <Tabs
+        defaultValue="analytics"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
+        <TabsList className="bg-white">
+          <TabsTrigger value="analytics" className="hover:bg-gray-100">Analytics</TabsTrigger>
+          <TabsTrigger value="invoices" className="hover:bg-gray-100">Invoices</TabsTrigger>
+          <TabsTrigger value="budgets" className="hover:bg-gray-100">Budgets</TabsTrigger>
+          <TabsTrigger value="recurring" className="hover:bg-gray-100">Recurring</TabsTrigger>
+          <TabsTrigger value="tax" className="hover:bg-gray-100">Tax</TabsTrigger>
+          <TabsTrigger value="reports" className="hover:bg-gray-100">Reports</TabsTrigger>
+          <TabsTrigger value="payments" className="hover:bg-gray-100">Payments</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="analytics">
+          <Analytics transactions={transactions} />
+        </TabsContent>
+
+        <TabsContent value="invoices">
+          <InvoiceManagement transactions={transactions} />
+        </TabsContent>
+
+        <TabsContent value="budgets">
+          <BudgetManagement transactions={transactions} />
+        </TabsContent>
+
+        <TabsContent value="recurring">
+          <RecurringTransactions transactions={transactions} />
+        </TabsContent>
+
+        <TabsContent value="tax">
+          <TaxManagement transactions={transactions} />
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <Reports transactions={transactions} />
+        </TabsContent>
+
+        <TabsContent value="payments">
+          <PaymentIntegration transactions={transactions} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 

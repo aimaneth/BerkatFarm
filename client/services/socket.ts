@@ -1,49 +1,95 @@
 import { io, Socket } from 'socket.io-client';
-import type { Activity } from '@/types/api';
+import { Livestock } from './livestock';
+
+interface ServerToClientEvents {
+  'livestock:created': (data: Livestock) => void;
+  'livestock:updated': (data: Livestock) => void;
+  'livestock:deleted': (id: number) => void;
+  'livestock:batch-created': (data: Livestock[]) => void;
+  'livestock:batch-updated': (data: Livestock[]) => void;
+  'livestock:batch-deleted': (ids: number[]) => void;
+}
+
+interface ClientToServerEvents {
+  'subscribe:livestock': () => void;
+  'unsubscribe:livestock': () => void;
+}
 
 class SocketService {
-  private static instance: SocketService;
-  private socket: Socket | null = null;
+  private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
+  private listeners: Map<string, Set<Function>> = new Map();
 
-  private constructor() {
-    const SOCKET_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000';
-    this.socket = io(SOCKET_URL);
+  connect() {
+    if (!this.socket) {
+      this.socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', {
+        transports: ['websocket'],
+      });
+
+      this.setupEventListeners();
+    }
+    return this.socket;
+  }
+
+  private setupEventListeners() {
+    if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('Connected to WebSocket');
+      console.log('Socket connected');
+      this.socket?.emit('subscribe:livestock');
     });
 
     this.socket.on('disconnect', () => {
-      console.log('Disconnected from WebSocket');
+      console.log('Socket disconnected');
+    });
+
+    // Livestock events
+    this.socket.on('livestock:created', (data) => {
+      this.notifyListeners('livestock:created', data);
+    });
+
+    this.socket.on('livestock:updated', (data) => {
+      this.notifyListeners('livestock:updated', data);
+    });
+
+    this.socket.on('livestock:deleted', (id) => {
+      this.notifyListeners('livestock:deleted', id);
+    });
+
+    this.socket.on('livestock:batch-created', (data) => {
+      this.notifyListeners('livestock:batch-created', data);
+    });
+
+    this.socket.on('livestock:batch-updated', (data) => {
+      this.notifyListeners('livestock:batch-updated', data);
+    });
+
+    this.socket.on('livestock:batch-deleted', (ids) => {
+      this.notifyListeners('livestock:batch-deleted', ids);
     });
   }
 
-  public static getInstance(): SocketService {
-    if (!SocketService.instance) {
-      SocketService.instance = new SocketService();
+  subscribe(event: string, callback: Function) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
     }
-    return SocketService.instance;
+    this.listeners.get(event)?.add(callback);
   }
 
-  public onLivestockUpdate(callback: (data: any) => void) {
-    this.socket?.on('livestock:update', callback);
+  unsubscribe(event: string, callback: Function) {
+    this.listeners.get(event)?.delete(callback);
   }
 
-  public onTeamUpdate(callback: (data: any) => void) {
-    this.socket?.on('team:update', callback);
+  private notifyListeners(event: string, data: any) {
+    this.listeners.get(event)?.forEach(callback => callback(data));
   }
 
-  public onDistributionUpdate(callback: (data: any) => void) {
-    this.socket?.on('distribution:update', callback);
-  }
-
-  public onNewActivity(callback: (activity: Activity) => void) {
-    this.socket?.on('activity:new', callback);
-  }
-
-  public disconnect() {
-    this.socket?.disconnect();
+  disconnect() {
+    if (this.socket) {
+      this.socket.emit('unsubscribe:livestock');
+      this.socket.disconnect();
+      this.socket = null;
+    }
   }
 }
 
-export const socketService = SocketService.getInstance(); 
+export const socketService = new SocketService(); 
