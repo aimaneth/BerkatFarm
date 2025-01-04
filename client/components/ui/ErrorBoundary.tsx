@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { AlertTriangle } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -9,6 +10,7 @@ interface Props {
 
 interface State {
   hasError: boolean;
+  error?: Error;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -16,8 +18,8 @@ export class ErrorBoundary extends Component<Props, State> {
     hasError: false
   };
 
-  public static getDerivedStateFromError(_: Error): State {
-    return { hasError: true };
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -27,11 +29,15 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="flex items-center justify-center min-h-[200px] bg-red-50 rounded-lg">
-          <div className="text-center">
-            <h2 className="text-lg font-semibold text-red-600">Something went wrong</h2>
-            <p className="mt-2 text-sm text-red-500">Please try refreshing the page</p>
-          </div>
+        <div className="flex flex-col items-center justify-center h-[200px] text-gray-500">
+          <AlertTriangle className="h-8 w-8 mb-2 text-red-500" />
+          <p>Something went wrong</p>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            className="mt-2 text-sm text-primary hover:underline"
+          >
+            Try again
+          </button>
         </div>
       );
     }

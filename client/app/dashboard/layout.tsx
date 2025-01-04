@@ -4,7 +4,9 @@ import { ReactNode } from 'react';
 import { Inter } from 'next/font/google';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import DashboardShell from '@/components/dashboard/DashboardShell';
+import { DashboardShell } from '@/components/dashboard/base/DashboardShell';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,11 +19,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
 
   if (status === 'loading') {
-    return (
-      <div className={`min-h-screen bg-gray-100 ${inter.className} flex items-center justify-center`}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (status === 'unauthenticated') {
@@ -31,7 +29,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className={`min-h-screen bg-gray-100 ${inter.className}`}>
-      <DashboardShell>{children}</DashboardShell>
+      <ErrorBoundary>
+        <DashboardShell>
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
+        </DashboardShell>
+      </ErrorBoundary>
     </div>
   );
 } 

@@ -1,94 +1,65 @@
 import { io, Socket } from 'socket.io-client';
-import { Livestock } from './livestock';
-
-interface ServerToClientEvents {
-  'livestock:created': (data: Livestock) => void;
-  'livestock:updated': (data: Livestock) => void;
-  'livestock:deleted': (id: number) => void;
-  'livestock:batch-created': (data: Livestock[]) => void;
-  'livestock:batch-updated': (data: Livestock[]) => void;
-  'livestock:batch-deleted': (ids: number[]) => void;
-}
-
-interface ClientToServerEvents {
-  'subscribe:livestock': () => void;
-  'unsubscribe:livestock': () => void;
-}
+import { queryClient } from '@/lib/react-query';
 
 class SocketService {
-  private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
-  private listeners: Map<string, Set<Function>> = new Map();
+  private socket: Socket | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
 
   connect() {
-    if (!this.socket) {
-      this.socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', {
-        transports: ['websocket'],
-      });
+    if (this.socket?.connected) return;
 
-      this.setupEventListeners();
-    }
-    return this.socket;
-  }
-
-  private setupEventListeners() {
-    if (!this.socket) return;
+    this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000', {
+      reconnectionAttempts: this.maxReconnectAttempts,
+    });
 
     this.socket.on('connect', () => {
       console.log('Socket connected');
-      this.socket?.emit('subscribe:livestock');
+      this.reconnectAttempts = 0;
     });
 
     this.socket.on('disconnect', () => {
       console.log('Socket disconnected');
     });
 
-    // Livestock events
-    this.socket.on('livestock:created', (data) => {
-      this.notifyListeners('livestock:created', data);
+    this.socket.on('error', (error) => {
+      console.error('Socket error:', error);
     });
 
-    this.socket.on('livestock:updated', (data) => {
-      this.notifyListeners('livestock:updated', data);
+    // Dashboard updates
+    this.socket.on('dashboard:update', (role: string) => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', role] });
     });
 
-    this.socket.on('livestock:deleted', (id) => {
-      this.notifyListeners('livestock:deleted', id);
+    // Livestock updates
+    this.socket.on('livestock:update', () => {
+      queryClient.invalidateQueries({ queryKey: ['livestock'] });
     });
 
-    this.socket.on('livestock:batch-created', (data) => {
-      this.notifyListeners('livestock:batch-created', data);
+    // Task updates
+    this.socket.on('task:update', () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     });
 
-    this.socket.on('livestock:batch-updated', (data) => {
-      this.notifyListeners('livestock:batch-updated', data);
+    // Order updates
+    this.socket.on('order:update', () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
     });
-
-    this.socket.on('livestock:batch-deleted', (ids) => {
-      this.notifyListeners('livestock:batch-deleted', ids);
-    });
-  }
-
-  subscribe(event: string, callback: Function) {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, new Set());
-    }
-    this.listeners.get(event)?.add(callback);
-  }
-
-  unsubscribe(event: string, callback: Function) {
-    this.listeners.get(event)?.delete(callback);
-  }
-
-  private notifyListeners(event: string, data: any) {
-    this.listeners.get(event)?.forEach(callback => callback(data));
   }
 
   disconnect() {
     if (this.socket) {
-      this.socket.emit('unsubscribe:livestock');
       this.socket.disconnect();
       this.socket = null;
     }
+  }
+
+  emit(event: string, data: any) {
+    if (!this.socket?.connected) {
+      console.warn('Socket not connected. Attempting to connect...');
+      this.connect();
+    }
+    this.socket?.emit(event, data);
   }
 }
 

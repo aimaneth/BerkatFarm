@@ -1,106 +1,85 @@
-import { useState, useEffect } from 'react';
-import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import { livestockApi, teamApi, distributionApi, activityApi } from '@/services/api';
-import { socketService } from '@/services/socket';
-import type { Activity } from '@/types/api';
+import { useQuery } from '@tanstack/react-query';
+
+interface DashboardMetric {
+  key: string;
+  value: string | number;
+  change?: string;
+  changeType?: 'positive' | 'negative';
+}
+
+interface DashboardAction {
+  label: string;
+  href: string;
+  description?: string;
+}
+
+interface ChartDataPoint {
+  name: string;
+  value: number;
+}
 
 interface DashboardData {
-  livestock: {
-    count: number;
-    isLoading: boolean;
-    error: unknown;
-  };
-  team: {
-    activeCount: number;
-    isLoading: boolean;
-    error: unknown;
-  };
-  distribution: {
-    pendingCount: number;
-    isLoading: boolean;
-    error: unknown;
-  };
-  activities: {
-    data: Activity[];
-    isLoading: boolean;
-    error: unknown;
+  metrics: DashboardMetric[];
+  actions: DashboardAction[];
+  recentActivities: {
+    id: string;
+    type: string;
+    description: string;
+    timestamp: string;
+  }[];
+  charts: {
+    livestock: ChartDataPoint[];
+    revenue: ChartDataPoint[];
+    tasks: {
+      total: number;
+      completed: number;
+      pending: number;
+    };
   };
 }
 
-export function useDashboardData(): DashboardData {
-  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
-
-  // Fetch initial data
-  const livestock = useQuery({
-    queryKey: ['livestockCount'],
-    queryFn: livestockApi.getCount
-  });
-
-  const team = useQuery({
-    queryKey: ['teamActiveCount'],
-    queryFn: teamApi.getActiveCount
-  });
-
-  const distribution = useQuery({
-    queryKey: ['distributionPendingCount'],
-    queryFn: distributionApi.getPendingCount
-  });
-
-  const activities = useQuery<Activity[]>({
-    queryKey: ['recentActivities'],
-    queryFn: () => activityApi.getRecent(5)
-  });
-
-  // Update recent activities when data changes
-  useEffect(() => {
-    if (activities.data) {
-      setRecentActivities(activities.data);
+const mockDashboardData: Record<string, DashboardData> = {
+  manager: {
+    metrics: [],
+    actions: [],
+    recentActivities: [],
+    charts: {
+      livestock: [
+        { name: 'Cattle', value: 150 },
+        { name: 'Sheep', value: 300 },
+        { name: 'Goats', value: 200 }
+      ],
+      revenue: [
+        { name: 'Jan', value: 45000 },
+        { name: 'Feb', value: 52000 },
+        { name: 'Mar', value: 49000 },
+        { name: 'Apr', value: 58000 },
+        { name: 'May', value: 55000 },
+        { name: 'Jun', value: 62000 }
+      ],
+      tasks: {
+        total: 45,
+        completed: 32,
+        pending: 13
+      }
     }
-  }, [activities.data]);
+  }
+};
 
-  // Set up real-time updates
-  useEffect(() => {
-    socketService.onLivestockUpdate(() => {
-      livestock.refetch();
-    });
+async function fetchDashboardData(role: string): Promise<DashboardData> {
+  // TODO: Replace with actual API call
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(mockDashboardData[role] || mockDashboardData.manager);
+    }, 1000);
+  });
+}
 
-    socketService.onTeamUpdate(() => {
-      team.refetch();
-    });
-
-    socketService.onDistributionUpdate(() => {
-      distribution.refetch();
-    });
-
-    socketService.onNewActivity((activity) => {
-      setRecentActivities(prev => [activity, ...prev].slice(0, 5));
-    });
-
-    return () => {
-      socketService.disconnect();
-    };
-  }, [livestock.refetch, team.refetch, distribution.refetch]);
-
-  return {
-    livestock: {
-      count: livestock.data ?? 0,
-      isLoading: livestock.isLoading,
-      error: livestock.error
-    },
-    team: {
-      activeCount: team.data ?? 0,
-      isLoading: team.isLoading,
-      error: team.error
-    },
-    distribution: {
-      pendingCount: distribution.data ?? 0,
-      isLoading: distribution.isLoading,
-      error: distribution.error
-    },
-    activities: {
-      data: recentActivities,
-      isLoading: activities.isLoading,
-      error: activities.error
-    }
-  };
+export function useDashboardData(role: string) {
+  return useQuery({
+    queryKey: ['dashboard', role],
+    queryFn: () => fetchDashboardData(role),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: true,
+  });
 } 

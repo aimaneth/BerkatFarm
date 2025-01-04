@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(STAFF)
+  status    Status   @default(ACTIVE)
+  tasks     Task[]   @relation("AssignedTasks")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Livestock {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  type      String
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  status      TaskStatus @default(PENDING)
+  assignedTo  String     @db.ObjectId
+  assignee    User       @relation("AssignedTasks", fields: [assignedTo], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Transaction {
+  id        String            @id @default(auto()) @map("_id") @db.ObjectId
+  type      TransactionType
+  amount    Float
+  month     DateTime
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model Order {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Activity {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  type        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+  MANAGER
+  ACCOUNTANT
+  SUPERVISOR
+  STAFF
+  VETERINARIAN
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+} 
