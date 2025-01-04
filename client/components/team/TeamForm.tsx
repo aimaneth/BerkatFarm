@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm, FieldValues } from 'react-hook-form';
+import { useForm, ControllerRenderProps, FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/Button';
@@ -41,7 +41,7 @@ import {
 import { Textarea } from '@/components/ui/Textarea';
 
 const formSchema = z.object({
-  avatar: z.instanceof(File).optional().or(z.null()),
+  avatar: z.any().optional(),
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   role: z.enum(['ADMIN', 'MANAGER', 'ACCOUNTANT', 'SUPERVISOR', 'STAFF', 'VETERINARIAN']),
@@ -62,15 +62,9 @@ interface TeamFormProps {
   onSuccess: () => void;
 }
 
-interface FieldProps {
-  field: {
-    value: any;
-    onChange: (...event: any[]) => void;
-    onBlur: () => void;
-    name: string;
-    ref: React.Ref<any>;
-  };
-}
+type FieldProps = {
+  field: ControllerRenderProps<FormValues, any>;
+};
 
 export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -79,7 +73,7 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      avatar: null,
+      avatar: undefined,
       name: '',
       email: '',
       role: 'STAFF',
@@ -103,8 +97,18 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
         });
         return;
       }
+
+      if (!file.type.startsWith('image/')) {
+        form.setError('avatar', {
+          type: 'manual',
+          message: 'Please upload an image file'
+        });
+        return;
+      }
+
       form.setValue('avatar', file);
-      setAvatarPreview(URL.createObjectURL(file));
+      const previewUrl = URL.createObjectURL(file);
+      setAvatarPreview(previewUrl);
     }
   };
 
@@ -113,16 +117,18 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
       setIsLoading(true);
       const formData = new FormData();
       
-      // Append form values
+      // Append all form values to FormData
       Object.entries(values).forEach(([key, value]) => {
-        if (key === 'avatar' && value instanceof File) {
-          formData.append('avatar', value);
-        } else if (value !== null && value !== undefined) {
-          formData.append(key, value.toString());
+        if (value !== null && value !== undefined) {
+          if (key === 'avatar' && value instanceof File) {
+            formData.append('avatar', value);
+          } else {
+            formData.append(key, value.toString());
+          }
         }
       });
 
-      const response = await fetch('/api/users', {
+      const response = await fetch('/api/team', {
         method: 'POST',
         body: formData,
       });
@@ -138,7 +144,6 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
       onOpenChange(false);
     } catch (error) {
       console.error('Error adding team member:', error);
-      // Show error in form
       if (error instanceof Error) {
         form.setError('root', {
           type: 'manual',
@@ -152,7 +157,7 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">Add Team Member</DialogTitle>
@@ -160,6 +165,7 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
+              type="button"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -175,7 +181,7 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
             <FormField
               control={form.control}
               name="avatar"
-              render={({ field: { value, onChange, ...field } }: FieldProps) => (
+              render={({ field: { value, onChange, ...field } }) => (
                 <FormItem>
                   <FormLabel>Profile Photo</FormLabel>
                   <FormControl>
@@ -222,7 +228,7 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
                 <FormField
                   control={form.control}
                   name="name"
-                  render={({ field }: FieldProps) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Name</FormLabel>
                       <FormControl>
@@ -239,7 +245,7 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
                 <FormField
                   control={form.control}
                   name="email"
-                  render={({ field }: FieldProps) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
@@ -256,7 +262,7 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
                 <FormField
                   control={form.control}
                   name="phone"
-                  render={({ field }: FieldProps) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Phone</FormLabel>
                       <FormControl>
@@ -273,7 +279,7 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
                 <FormField
                   control={form.control}
                   name="password"
-                  render={({ field }: FieldProps) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
@@ -290,27 +296,24 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
                 <FormField
                   control={form.control}
                   name="role"
-                  render={({ field }: FieldProps) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Role</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Briefcase className="absolute left-3 top-2.5 h-5 w-5 text-gray-400 z-10" />
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger className="pl-10">
-                              <SelectValue placeholder="Select role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="STAFF">Staff</SelectItem>
-                              <SelectItem value="MANAGER">Manager</SelectItem>
-                              <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
-                              <SelectItem value="VETERINARIAN">Veterinarian</SelectItem>
-                              <SelectItem value="ACCOUNTANT">Accountant</SelectItem>
-                              <SelectItem value="ADMIN">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </FormControl>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ADMIN">Admin</SelectItem>
+                          <SelectItem value="MANAGER">Manager</SelectItem>
+                          <SelectItem value="ACCOUNTANT">Accountant</SelectItem>
+                          <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
+                          <SelectItem value="STAFF">Staff</SelectItem>
+                          <SelectItem value="VETERINARIAN">Veterinarian</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -319,23 +322,13 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
                 <FormField
                   control={form.control}
                   name="department"
-                  render={({ field }: FieldProps) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Department</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Building className="absolute left-3 top-2.5 h-5 w-5 text-gray-400 z-10" />
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger className="pl-10">
-                              <SelectValue placeholder="Select department" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Management">Management</SelectItem>
-                              <SelectItem value="Veterinary">Veterinary</SelectItem>
-                              <SelectItem value="Feed & Nutrition">Feed & Nutrition</SelectItem>
-                              <SelectItem value="Operations">Operations</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Building className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                          <Input placeholder="Department" className="pl-10" {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -346,24 +339,21 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
                 <FormField
                   control={form.control}
                   name="shift"
-                  render={({ field }: FieldProps) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Shift</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-gray-400 z-10" />
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger className="pl-10">
-                              <SelectValue placeholder="Select shift" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Morning">Morning</SelectItem>
-                              <SelectItem value="Afternoon">Afternoon</SelectItem>
-                              <SelectItem value="Night">Night</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </FormControl>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select shift" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Morning">Morning</SelectItem>
+                          <SelectItem value="Afternoon">Afternoon</SelectItem>
+                          <SelectItem value="Night">Night</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -372,7 +362,7 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
                 <FormField
                   control={form.control}
                   name="startDate"
-                  render={({ field }: FieldProps) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Start Date</FormLabel>
                       <FormControl>
@@ -393,12 +383,12 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
               <FormField
                 control={form.control}
                 name="specializations"
-                render={({ field }: FieldProps) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Specializations</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Enter specializations (comma separated)"
+                        placeholder="Enter specializations (comma-separated)"
                         className="resize-none"
                         {...field}
                       />
@@ -411,13 +401,13 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
               <FormField
                 control={form.control}
                 name="location"
-                render={({ field }: FieldProps) => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Work Location</FormLabel>
+                    <FormLabel>Location</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <Input placeholder="Farm location or work area" className="pl-10" {...field} />
+                        <Input placeholder="Work location" className="pl-10" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -426,20 +416,16 @@ export function TeamForm({ open, onOpenChange, onSuccess }: TeamFormProps) {
               />
             </div>
 
-            {/* Form Error */}
-            {form.formState.errors.root && (
-              <div className="text-sm text-red-500">
-                {form.formState.errors.root.message}
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <div className="flex justify-end">
+            <div className="flex justify-end space-x-3">
               <Button
-                type="submit"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
                 disabled={isLoading}
               >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
                 {isLoading ? 'Adding...' : 'Add Team Member'}
               </Button>
             </div>
