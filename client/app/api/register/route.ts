@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
-import clientPromise from '@/lib/mongodb';
 import { z } from 'zod';
 import { UserRole } from '@/shared/types/auth';
+import { getUsers } from '@/lib/db';
 
 // Input validation schema
 const registerSchema = z.object({
@@ -13,29 +13,12 @@ const registerSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.MONGODB_URI) {
-      console.error('MongoDB URI is missing');
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      );
-    }
-
     const body = await req.json();
     
     // Validate input
     const validatedData = registerSchema.parse(body);
     
-    const client = await clientPromise;
-    if (!client) {
-      console.error('Failed to connect to MongoDB');
-      return NextResponse.json(
-        { error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    const users = client.db().collection('users');
+    const users = await getUsers();
     
     // Check if user already exists
     const existingUser = await users.findOne({ 
@@ -62,7 +45,9 @@ export async function POST(req: Request) {
       email: validatedData.email.toLowerCase(),
       password: hashedPassword,
       role,
+      status: 'ACTIVE',
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
     
     if (!result.acknowledged) {

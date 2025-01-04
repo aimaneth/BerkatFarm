@@ -1,8 +1,16 @@
 import { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import clientPromise from '@/lib/mongodb';
 import { compare } from 'bcryptjs';
 import type { UserRole } from '@/shared/types/auth';
+import { getUsers } from '@/lib/db';
+import { WithId, Document } from 'mongodb';
+
+interface User extends WithId<Document> {
+  email: string;
+  password: string;
+  name: string;
+  role: UserRole;
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -18,13 +26,8 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Please enter both email and password');
           }
 
-          const client = await clientPromise;
-          if (!client) {
-            throw new Error('Database connection failed');
-          }
-
-          const users = client.db().collection('users');
-          const user = await users.findOne({ email: credentials.email.toLowerCase() });
+          const users = await getUsers();
+          const user = await users.findOne<User>({ email: credentials.email.toLowerCase() });
 
           if (!user) {
             throw new Error('No user found with this email');
@@ -52,8 +55,8 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   pages: {
-    signIn: '/login',
-    error: '/error'
+    signIn: '/auth/login',
+    error: '/auth/error'
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -75,6 +78,10 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
+      // Redirect to dashboard after login
+      if (url === '/dashboard') {
+        return `${baseUrl}`;
+      }
       // Handle relative URLs
       if (url.startsWith('/')) {
         return `${baseUrl}${url}`;

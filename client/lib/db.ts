@@ -1,22 +1,50 @@
-import { MongoClient, Db } from 'mongodb';
+import { Collection, Db, MongoClient } from 'mongodb';
+import clientPromise from './mongodb';
 
-let cachedClient: MongoClient | null = null;
-let cachedDb: Db | null = null;
+// Cache the database connection
+let db: Db | null = null;
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('Please add your MongoDB URI to .env.local');
+export async function getDb() {
+  if (!db) {
+    const client = await clientPromise;
+    db = client.db('farm-management');
+  }
+  return db;
 }
 
-export async function connectToDatabase() {
-  if (cachedClient && cachedDb) {
-    return { client: cachedClient, db: cachedDb };
-  }
+// Helper functions for collections
+export async function getUsers(): Promise<Collection> {
+  const db = await getDb();
+  return db.collection('users');
+}
 
-  const client = await MongoClient.connect(process.env.MONGODB_URI!);
-  const db = client.db(process.env.MONGODB_DB || 'berkat-farm');
+export async function getLivestock(): Promise<Collection> {
+  const db = await getDb();
+  return db.collection('livestock');
+}
 
-  cachedClient = client;
-  cachedDb = db;
+export async function getTasks(): Promise<Collection> {
+  const db = await getDb();
+  return db.collection('tasks');
+}
 
-  return { client, db };
+export async function getTransactions(): Promise<Collection> {
+  const db = await getDb();
+  return db.collection('transactions');
+}
+
+export async function getOrders(): Promise<Collection> {
+  const db = await getDb();
+  return db.collection('orders');
+}
+
+export async function getActivities(): Promise<Collection> {
+  const db = await getDb();
+  return db.collection('activities');
+}
+
+// Helper function to convert string ID to ObjectId
+export function toObjectId(id: string) {
+  const { ObjectId } = require('mongodb');
+  return new ObjectId(id);
 } 

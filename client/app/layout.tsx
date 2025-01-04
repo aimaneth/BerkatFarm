@@ -1,9 +1,7 @@
 'use client';
 
 import { Inter } from 'next/font/google';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '@/lib/react-query';
-import { useEffect } from 'react';
+import { Providers } from './providers';
 import { socketService } from '@/services/socket';
 import './globals.css';
 
@@ -14,19 +12,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  useEffect(() => {
-    socketService.connect();
-    return () => {
-      socketService.disconnect();
-    };
-  }, []);
-
   return (
     <html lang="en">
       <body className={inter.className}>
-        <QueryClientProvider client={queryClient}>
-          {children}
-        </QueryClientProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

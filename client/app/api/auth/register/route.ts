@@ -1,49 +1,81 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { connectToDatabase } from '@/lib/db';
+import { getUsers } from '@/lib/db';
+import { z } from 'zod';
+
+// Input validation schema
+const registerSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  role: z.enum(['MANAGER', 'WORKER']).default('WORKER')
+});
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json();
-
-    if (!name || !email || !password) {
-      return NextResponse.json(
-        { message: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    const { db } = await connectToDatabase();
+    const body = await req.json();
+    const validatedData = registerSchema.parse(body);
+    
+    const users = await getUsers();
 
     // Check if user already exists
-    const existingUser = await db.collection('users').findOne({ email });
+    const existingUser = await users.findOne({ email: validatedData.email });
     if (existingUser) {
       return NextResponse.json(
-        { message: 'User already exists' },
-        { status: 400 }
+        { error: 'User with this email already exists' },
+        { status: 409 }
       );
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(validatedData.password, 12);
 
     // Create user
-    const result = await db.collection('users').insertOne({
-      name,
-      email,
+    const result = await users.insertOne({
+      ...validatedData,
       password: hashedPassword,
-      role: 'user',
       createdAt: new Date(),
+      updatedAt: new Date()
     });
 
-    return NextResponse.json(
-      { message: 'User created successfully', userId: result.insertedId },
-      { status: 201 }
-    );
+    if (!result.acknowledged) {
+      throw new Error('Failed to create user');
+    }
+
+    const created = await users.findOne({ _id: result.insertedId });
+    if (!created) {
+      throw new Error('Failed to fetch created user');
+    }
+
+    // Remove password from response
+    const { password, ...userWithoutPassword } = created;
+
+    return NextResponse.json({
+      message: 'User registered successfully',
+      user: userWithoutPassword,
+      _links: {
+        self: `/api/users/${result.insertedId}`,
+        collection: '/api/users'
+      }
+    }, { status: 201 });
   } catch (error) {
     console.error('Registration error:', error);
+    
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { 
+          error: 'Validation error', 
+          details: error.errors.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { error: 'Failed to register user' },
       { status: 500 }
     );
   }

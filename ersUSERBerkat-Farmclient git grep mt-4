@@ -1,0 +1,39 @@
+[35mapp/(auth)/error/page.tsx[m[36m:[m          <div className="[1;31mmt-4[m text-center text-red-600">{message}</div>
+[35mapp/(marketing)/about/page.tsx[m[36m:[m              <p className="text-gray-600 [1;31mmt-4[m">Open for visits: Monday - Saturday, 9 AM - 5 PM</p>
+[35mapp/(marketing)/contact/page.tsx[m[36m:[m                  <div className="[1;31mmt-4[m transform transition-all duration-300 group-hover:scale-110">
+[35mapp/(marketing)/contact/page.tsx[m[36m:[m                <div className="bg-emerald-50 rounded-lg p-4 [1;31mmt-4[m">
+[35mapp/(marketing)/page.tsx[m[36m:[m            <p className="[1;31mmt-4[m max-w-2xl mx-auto text-xl text-gray-600">
+[35mapp/(marketing)/page.tsx[m[36m:[m                <p className="[1;31mmt-4[m text-gray-600">{feature.description}</p>
+[35mapp/(marketing)/page.tsx[m[36m:[m            <p className="[1;31mmt-4[m max-w-2xl mx-auto text-xl text-gray-600">
+[35mapp/(marketing)/page.tsx[m[36m:[m            <p className="[1;31mmt-4[m max-w-2xl mx-auto text-xl text-gray-600">
+[35mapp/(marketing)/page.tsx[m[36m:[m            <p className="[1;31mmt-4[m max-w-2xl mx-auto text-xl text-gray-600">
+[35mapp/(marketing)/page.tsx[m[36m:[m                <p className="[1;31mmt-4[m text-gray-600">{testimonial.content}</p>
+[35mapp/(marketing)/products/page.tsx[m[36m:[m              <p className="[1;31mmt-4[m max-w-2xl mx-auto text-xl text-gray-600">
+[35mapp/(marketing)/products/page.tsx[m[36m:[m              <p className="[1;31mmt-4[m max-w-2xl mx-auto text-xl text-gray-600">
+[35mapp/dashboard/analytics/page.tsx[m[36m:[m          <div className="[1;31mmt-4[m grid grid-cols-3 gap-4">
+[35mapp/dashboard/analytics/page.tsx[m[36m:[m          <div className="[1;31mmt-4[m grid grid-cols-3 gap-4">
+[35mapp/dashboard/analytics/page.tsx[m[36m:[m          <div className="[1;31mmt-4[m grid grid-cols-3 gap-4">
+[35mapp/dashboard/analytics/page.tsx[m[36m:[m          <div className="[1;31mmt-4[m grid grid-cols-3 gap-4">
+[35mapp/dashboard/inventory/page.tsx[m[36m:[m                  <div className="[1;31mmt-4[m grid grid-cols-2 sm:grid-cols-4 gap-4">
+[35mapp/dashboard/inventory/page.tsx[m[36m:[m              <div className="[1;31mmt-4[m pt-4 border-t border-gray-200">
+[35mapp/dashboard/orders/page.tsx[m[36m:[m            <div className="[1;31mmt-4[m grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
+[35mapp/dashboard/orders/page.tsx[m[36m:[m          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 [1;31mmt-4[m">
+[35mapp/dashboard/orders/page.tsx[m[36m:[m                  <div className="[1;31mmt-4[m space-y-2">
+[35mapp/dashboard/orders/page.tsx[m[36m:[m              <div className="[1;31mmt-4[m pt-4 border-t border-gray-200">
+[35mapp/dashboard/page.tsx[m[36m:[m            <div className="[1;31mmt-4[m">
+[35mapp/dashboard/profile/page.tsx[m[36m:[m            <h2 className="[1;31mmt-4[m text-xl font-semibold text-gray-900">{session?.user?.name}</h2>
+[35mapp/dashboard/profile/page.tsx[m[36m:[m            <div className="[1;31mmt-4[m flex items-center justify-center space-x-2">
+[35mapp/dashboard/profile/page.tsx[m[36m:[m            <div className="[1;31mmt-4[m grid grid-cols-2 gap-3">
+[35mapp/dashboard/settings/page.tsx[m[36m:[m                      <Button variant="outline" className="[1;31mmt-4[m bg-white">
+[35mapp/dashboard/team/page.tsx[m[36m:[m            <div className="[1;31mmt-4[m grid grid-cols-2 gap-4">
+[35mapp/unauthorized/page.tsx[m[36m:[m          <h1 className="[1;31mmt-4[m text-3xl font-bold text-gray-900">
+[35mcomponents/auth/TwoFactorAuth.tsx[m[36m:[m              <p className="[1;31mmt-4[m text-sm text-gray-500 text-center">
+[35mcomponents/dashboard/charts/ChartContainer.tsx[m[36m:[m        <ChartLegend items={legendItems} className="[1;31mmt-4[m pt-4 border-t" />
+[35mcomponents/dashboard/shared/Navigation.tsx[m[36m:[m        <nav className="[1;31mmt-4[m">
+[35mcomponents/finance/PaymentIntegration.tsx[m[36m:[m            <div className="[1;31mmt-4[m grid grid-cols-2 gap-4">
+[35mcomponents/finance/PaymentIntegration.tsx[m[36m:[m            <div className="[1;31mmt-4[m flex justify-end">
+[35mcomponents/livestock/Documentation.tsx[m[36m:[m                <div className="flex justify-end [1;31mmt-4[m space-x-2">
+[35mcomponents/products/ProductGrid.tsx[m[36m:[m              <div className="[1;31mmt-4[m grid grid-cols-3 gap-2">
+[35mcomponents/team/AddMemberModal.tsx[m[36m:[m        <form onSubmit={handleSubmit} className="[1;31mmt-4[m space-y-6">
+[35mcomponents/team/MemberProfileModal.tsx[m[36m:[m              <Button className="[1;31mmt-4[m sm:mt-0" variant="outline">
+[35mcomponents/ui/LoadingScreen.tsx[m[36m:[m        <p className="[1;31mmt-4[m text-sm text-gray-500">{message}</p>

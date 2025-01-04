@@ -6,8 +6,8 @@ class SocketService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
 
-  connect() {
-    if (this.socket?.connected) return;
+  connect(): Socket | null {
+    if (this.socket?.connected) return this.socket;
 
     this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000', {
       reconnectionAttempts: this.maxReconnectAttempts,
@@ -45,6 +45,8 @@ class SocketService {
     this.socket.on('order:update', () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     });
+
+    return this.socket;
   }
 
   disconnect() {
@@ -60,6 +62,10 @@ class SocketService {
       this.connect();
     }
     this.socket?.emit(event, data);
+  }
+
+  getSocket(): Socket | null {
+    return this.socket;
   }
 }
 

@@ -2,84 +2,155 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import {
-  CowIcon,
-  UsersIcon,
-  TruckIcon,
-  RevenueIcon,
-  AnalyticsIcon,
-  CalendarIcon,
-  SettingsIcon,
-  BellIcon
-} from '@/components/icons';
+  Home,
+  Beef,
+  Users,
+  DollarSign,
+  ShoppingCart,
+  CheckSquare,
+  Settings,
+  User,
+  BarChart2,
+  Calendar,
+  FileText,
+  PieChart,
+  Target,
+  Activity,
+  HeartPulse,
+  Calculator,
+  LucideIcon,
+} from 'lucide-react';
 
 interface NavigationProps {
-  role: 'manager' | 'accountant' | 'supervisor' | 'staff' | 'veterinarian';
+  role: 'admin' | 'manager' | 'accountant' | 'supervisor' | 'staff' | 'veterinarian';
 }
 
-const roleBasedNavItems = {
-  manager: [
-    { name: 'Overview', href: '/dashboard', icon: AnalyticsIcon },
-    { name: 'Livestock', href: '/dashboard/livestock', icon: CowIcon },
-    { name: 'Team', href: '/dashboard/team', icon: UsersIcon },
-    { name: 'Finance', href: '/dashboard/finance', icon: RevenueIcon },
-    { name: 'Orders', href: '/dashboard/orders', icon: TruckIcon },
-    { name: 'Tasks', href: '/dashboard/tasks', icon: CalendarIcon },
-    { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon }
-  ],
-  accountant: [
-    { name: 'Overview', href: '/dashboard', icon: AnalyticsIcon },
-    { name: 'Finance', href: '/dashboard/finance', icon: RevenueIcon },
-    { name: 'Orders', href: '/dashboard/orders', icon: TruckIcon },
-    { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon }
-  ],
-  supervisor: [
-    { name: 'Overview', href: '/dashboard', icon: AnalyticsIcon },
-    { name: 'Team', href: '/dashboard/team', icon: UsersIcon },
-    { name: 'Tasks', href: '/dashboard/tasks', icon: CalendarIcon },
-    { name: 'Orders', href: '/dashboard/orders', icon: TruckIcon },
-    { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon }
-  ],
-  veterinarian: [
-    { name: 'Overview', href: '/dashboard', icon: AnalyticsIcon },
-    { name: 'Livestock', href: '/dashboard/livestock', icon: CowIcon },
-    { name: 'Tasks', href: '/dashboard/tasks', icon: CalendarIcon },
-    { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon }
-  ],
-  staff: [
-    { name: 'Overview', href: '/dashboard', icon: AnalyticsIcon },
-    { name: 'Tasks', href: '/dashboard/tasks', icon: CalendarIcon },
-    { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon }
-  ]
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+interface NavigationSection {
+  label: string;
+  items: NavigationItem[];
+}
+
+type NavigationConfig = {
+  [key: string]: NavigationSection;
+}
+
+// Navigation items grouped by section
+const navigationConfig: NavigationConfig = {
+  // Main Operations
+  main: {
+    label: 'Main',
+    items: [
+      { name: 'Overview', href: '/', icon: Home },
+      { name: 'Livestock', href: '/livestock', icon: Beef },
+      { name: 'Team', href: '/team', icon: Users },
+      { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+    ]
+  },
+  // Financial Management
+  finance: {
+    label: 'Finance',
+    items: [
+      { name: 'Finance', href: '/finance', icon: DollarSign },
+      { name: 'Budget', href: '/budget', icon: Calculator },
+      { name: 'ROI', href: '/roi', icon: PieChart },
+    ]
+  },
+  // Planning & Analysis
+  planning: {
+    label: 'Planning',
+    items: [
+      { name: 'Schedule', href: '/schedule', icon: Calendar },
+      { name: 'Goals', href: '/goals', icon: Target },
+      { name: 'Analytics', href: '/analytics', icon: BarChart2 },
+    ]
+  },
+  // Health & Records
+  health: {
+    label: 'Health & Records',
+    items: [
+      { name: 'Health Records', href: '/health-records', icon: HeartPulse },
+      { name: 'Reports', href: '/reports', icon: FileText },
+    ]
+  },
+  // User
+  user: {
+    label: 'User',
+    items: [
+      { name: 'Settings', href: '/settings', icon: Settings },
+      { name: 'Profile', href: '/profile', icon: User },
+    ]
+  }
 };
+
+// Role-based access configuration
+const roleAccess: Record<NavigationProps['role'], string[]> = {
+  admin: ['main', 'finance', 'planning', 'health', 'user'],
+  manager: ['main', 'finance', 'planning', 'health', 'user'],
+  accountant: ['finance', 'user'],
+  supervisor: ['main', 'planning', 'user'],
+  staff: ['main', 'user'],
+  veterinarian: ['main', 'health', 'user'],
+};
+
+// Development mode flag
+const DEVELOPMENT_MODE = true;
 
 export function Navigation({ role }: NavigationProps) {
   const pathname = usePathname();
-
-  const navItems = roleBasedNavItems[role];
+  
+  // Get accessible sections based on role
+  const accessibleSections = DEVELOPMENT_MODE ? 
+    Object.keys(navigationConfig) : 
+    roleAccess[role] || [];
 
   return (
-    <nav className="w-64 bg-white border-r border-gray-200 px-4 py-6">
-      <div className="space-y-4">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
+    <nav className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-200 overflow-y-auto">
+      <div className="flex flex-col gap-6 p-4">
+        {/* Logo */}
+        <div className="flex items-center gap-2 px-2">
+          <div className="w-8 h-8 bg-emerald-500 rounded-lg" />
+          <span className="text-lg font-semibold text-gray-900">Berkat Farm</span>
+        </div>
 
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                'flex items-center px-4 py-2 text-sm font-medium rounded-lg',
-                isActive
-                  ? 'bg-primary text-white'
-                  : 'text-gray-600 hover:bg-gray-50'
-              )}
-            >
-              <Icon className="h-5 w-5 mr-3" />
-              {item.name}
-            </Link>
-          );
-        })}
+        {/* Navigation Sections */}
+        <div className="flex flex-col gap-6">
+          {accessibleSections.map(sectionKey => {
+            const section = navigationConfig[sectionKey];
+            return (
+              <div key={sectionKey} className="flex flex-col gap-1">
+                <div className="px-2 mb-2">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    {section.label}
+                  </p>
+                </div>
+                {section.items.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={cn(
+                        'flex items-center gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-colors',
+                        isActive
+                          ? 'bg-emerald-50 text-emerald-600'
+                          : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                      )}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

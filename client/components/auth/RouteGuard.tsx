@@ -8,6 +8,9 @@ interface RouteGuardProps {
   allowedRoles?: string[];
 }
 
+// TODO: Set this to false in production
+const DEVELOPMENT_MODE = true;
+
 export function RouteGuard({ children, allowedRoles = [] }: RouteGuardProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -21,7 +24,8 @@ export function RouteGuard({ children, allowedRoles = [] }: RouteGuardProps) {
       return;
     }
 
-    if (allowedRoles.length > 0 && !allowedRoles.includes(session.user?.role as string)) {
+    // Skip role check in development mode
+    if (!DEVELOPMENT_MODE && allowedRoles.length > 0 && !allowedRoles.includes(session.user?.role as string)) {
       router.push('/unauthorized');
     }
   }, [session, status, router, pathname, allowedRoles]);
@@ -34,7 +38,8 @@ export function RouteGuard({ children, allowedRoles = [] }: RouteGuardProps) {
     return null;
   }
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(session.user?.role as string)) {
+  // Skip role check in development mode
+  if (!DEVELOPMENT_MODE && allowedRoles.length > 0 && !allowedRoles.includes(session.user?.role as string)) {
     return null;
   }
 

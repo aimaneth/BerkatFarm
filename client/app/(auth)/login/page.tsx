@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRightIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,14 +30,13 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        setError('Invalid email or password');
       } else {
-        // Redirect to dashboard
-        window.location.href = '/dashboard';
+        router.push('/');
       }
     } catch (error) {
       console.error('Unexpected error:', error);
-      setError('An unexpected error occurred');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -109,10 +110,9 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full group inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-600 hover:to-teal-500 transition-all duration-200 ease-in-out shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                isLoading={isLoading}
                 disabled={isLoading}
               >
-                Sign in
+                {isLoading ? 'Loading...' : 'Sign in'}
                 <ArrowRightIcon className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
               </Button>
             </div>

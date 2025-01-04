@@ -1,4 +1,4 @@
-type LivestockData = {
+export type LivestockData = {
   id: number;
   tag: string;
   type: string;

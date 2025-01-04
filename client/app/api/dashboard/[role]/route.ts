@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getActivities, getLivestock, getTasks } from '@/lib/db';
+import { WithId, Document } from 'mongodb';
 
-interface Task {
-  id: string;
+interface Task extends WithId<Document> {
   title: string;
   description?: string;
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
@@ -13,8 +13,7 @@ interface Task {
   updatedAt: Date;
 }
 
-interface Activity {
-  id: string;
+interface Activity extends WithId<Document> {
   type: string;
   description: string;
   createdAt: Date;
@@ -45,12 +44,24 @@ type DashboardResponse = {
   }>;
 };
 
-type LivestockCategory = {
-  type: string;
-  _count: {
-    id: number;
-  };
-};
+async function getLivestockGroups() {
+  const livestock = await getLivestock();
+  const result = await livestock.aggregate([
+    {
+      $group: {
+        _id: "$type",
+        count: { $sum: 1 }
+      }
+    }
+  ]).toArray();
+  
+  return result.map(item => ({
+    type: item._id,
+    _count: {
+      id: item.count
+    }
+  }));
+}
 
 export async function GET(
   request: NextRequest,
@@ -68,41 +79,38 @@ export async function GET(
 
     const { role } = params;
 
+    // Get collection instances
+    const [livestockColl, tasksColl, activitiesColl] = await Promise.all([
+      getLivestock(),
+      getTasks(),
+      getActivities()
+    ]);
+
     // Fetch common data
     const [
       totalLivestock,
       tasks,
       recentActivities
     ] = await Promise.all([
-      prisma.livestock.count(),
-      prisma.task.findMany({
-        where: {
-          assignedTo: session.user.id
-        },
-        take: 5,
-        orderBy: {
-          createdAt: 'desc'
-        }
-      }),
-      prisma.activity.findMany({
-        take: 5,
-        orderBy: {
-          createdAt: 'desc'
-        }
+      livestockColl.countDocuments(),
+      tasksColl.find<Task>({
+        assignedTo: session.user.id
       })
-    ]) as [number, Task[], Activity[]];
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .toArray(),
+      activitiesColl.find<Activity>({})
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .toArray()
+    ]);
 
     // Calculate task statistics
-    const completedTasks = tasks.filter((task: Task) => task.status === 'COMPLETED').length;
-    const pendingTasks = tasks.filter((task: Task) => task.status === 'PENDING').length;
+    const completedTasks = tasks.filter(task => task.status === 'COMPLETED').length;
+    const pendingTasks = tasks.filter(task => task.status === 'PENDING').length;
 
     // Get livestock categories
-    const livestockByCategory = await prisma.livestock.groupBy({
-      by: ['type'],
-      _count: {
-        id: true
-      }
-    }) as LivestockCategory[];
+    const livestockByCategory = await getLivestockGroups();
 
     // Mock revenue data (replace with actual data in production)
     const revenueData = [
@@ -114,7 +122,7 @@ export async function GET(
       { name: 'Jun', value: 2390 }
     ];
 
-    const livestockData = livestockByCategory.map((item: LivestockCategory) => ({
+    const livestockData = livestockByCategory.map(item => ({
       name: item.type,
       value: item._count.id
     }));
@@ -129,8 +137,8 @@ export async function GET(
         },
         revenue: revenueData
       },
-      recentActivities: recentActivities.map((activity: Activity) => ({
-        id: activity.id,
+      recentActivities: recentActivities.map(activity => ({
+        id: activity._id.toString(),
         type: activity.type,
         description: activity.description,
         createdAt: activity.createdAt

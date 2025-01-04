@@ -36,7 +36,7 @@ export default function RegisterPage() {
       });
 
       if (res.ok) {
-        router.push('/login');
+        router.push('/auth/login');
       } else {
         const data = await res.json();
         setError(data.error || 'Registration failed');
@@ -156,10 +156,9 @@ export default function RegisterPage() {
               <Button
                 type="submit"
                 className="w-full group inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-600 hover:to-teal-500 transition-all duration-200 ease-in-out shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                isLoading={isLoading}
                 disabled={isLoading}
               >
-                Create account
+                {isLoading ? 'Creating account...' : 'Create account'}
                 <ArrowRightIcon className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
               </Button>
             </div>
