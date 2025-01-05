@@ -7,8 +7,7 @@ import { z } from 'zod';
 const registerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  role: z.enum(['MANAGER', 'WORKER']).default('WORKER')
+  password: z.string().min(8, 'Password must be at least 8 characters')
 });
 
 export async function POST(req: Request) {
@@ -30,10 +29,16 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(validatedData.password, 12);
 
+    // Check if this is the first user (make them admin)
+    const userCount = await users.countDocuments();
+    const role = userCount === 0 ? 'ADMIN' : 'STAFF';
+
     // Create user
     const result = await users.insertOne({
       ...validatedData,
       password: hashedPassword,
+      role,
+      status: 'ACTIVE',
       createdAt: new Date(),
       updatedAt: new Date()
     });

@@ -1,6 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from './prisma';
+import { getUsers } from '@/lib/db';
 import { compare } from 'bcrypt';
 
 export const authOptions: NextAuthOptions = {
@@ -16,11 +16,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid credentials');
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email
-          }
-        });
+        const users = await getUsers();
+        const user = await users.findOne({ email: credentials.email });
 
         if (!user) {
           throw new Error('Invalid credentials');
@@ -36,7 +33,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         return {
-          id: user.id,
+          id: user._id.toString(),
           email: user.email,
           name: user.name,
           role: user.role
@@ -64,11 +61,18 @@ export const authOptions: NextAuthOptions = {
           role: token.role
         }
       };
+    },
+    async redirect({ url, baseUrl }) {
+      // Allows relative URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl + "/dashboard"
     }
   },
   pages: {
     signIn: '/auth/login',
-    signOut: '/auth/login'
+    error: '/auth/error'
   },
   session: {
     strategy: 'jwt'

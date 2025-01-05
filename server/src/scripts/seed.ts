@@ -17,11 +17,11 @@ async function main() {
     const hashedPassword = await hash('password123', 12);
     const users = await Promise.all([
       db.collection('users').updateOne(
-        { email: 'manager@berkatfarm.com' },
+        { email: 'manager@FarmSoul.com' },
         {
           $set: {
             name: 'Farm Manager',
-            email: 'manager@berkatfarm.com',
+            email: 'manager@FarmSoul.com',
             password: hashedPassword,
             role: 'MANAGER',
             status: 'ACTIVE',
@@ -32,11 +32,11 @@ async function main() {
         { upsert: true }
       ),
       db.collection('users').updateOne(
-        { email: 'accountant@berkatfarm.com' },
+        { email: 'accountant@FarmSoul.com' },
         {
           $set: {
             name: 'Farm Accountant',
-            email: 'accountant@berkatfarm.com',
+            email: 'accountant@FarmSoul.com',
             password: hashedPassword,
             role: 'ACCOUNTANT',
             status: 'ACTIVE',
@@ -47,11 +47,11 @@ async function main() {
         { upsert: true }
       ),
       db.collection('users').updateOne(
-        { email: 'supervisor@berkatfarm.com' },
+        { email: 'supervisor@FarmSoul.com' },
         {
           $set: {
             name: 'Farm Supervisor',
-            email: 'supervisor@berkatfarm.com',
+            email: 'supervisor@FarmSoul.com',
             password: hashedPassword,
             role: 'SUPERVISOR',
             status: 'ACTIVE',

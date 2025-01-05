@@ -1,6 +1,5 @@
 'use client';
 
-import { MarketingNav } from '@/components/marketing/MarketingNav';
 import { MarketingFooter } from '@/components/marketing/MarketingFooter';
 
 export default function MarketingLayout({
@@ -10,7 +9,6 @@ export default function MarketingLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <MarketingNav />
       <main className="flex-1">{children}</main>
       <MarketingFooter />
     </div>

@@ -23,7 +23,7 @@ export default function RegisterPage() {
     const password = formData.get('password') as string;
 
     try {
-      const res = await fetch('/api/register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -94,7 +94,7 @@ export default function RegisterPage() {
             </h2>
             <p className="mt-2 text-sm text-gray-600">
               Already have an account?{' '}
-              <Link href="/login" className="font-medium text-emerald-600 hover:text-emerald-500">
+              <Link href="/auth/login" className="font-medium text-emerald-600 hover:text-emerald-500">
                 Sign in
               </Link>
             </p>

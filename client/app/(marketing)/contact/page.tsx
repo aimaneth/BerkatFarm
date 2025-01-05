@@ -38,7 +38,7 @@ const contactInfo = [
   {
     icon: EnvelopeIcon,
     title: 'Email',
-    details: 'contact@berkatfarm.com',
+    details: 'contact@FarmSoul.com',
     description: "We'll respond within 24 hours"
   },
   {
@@ -58,7 +58,7 @@ const contactInfo = [
 const socialLinks = [
   {
     name: 'Instagram',
-    url: 'https://instagram.com/berkatfarmtrading',
+    url: 'https://instagram.com/FarmSoultrading',
     icon: (props: React.SVGProps<SVGSVGElement>) => (
       <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
         <path
