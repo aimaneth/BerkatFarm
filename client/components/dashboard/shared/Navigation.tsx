@@ -46,44 +46,44 @@ const navigationConfig: NavigationConfig = {
   main: {
     label: 'Main',
     items: [
-      { name: 'Overview', href: '/', icon: Home },
-      { name: 'Livestock', href: '/livestock', icon: Beef },
-      { name: 'Team', href: '/team', icon: Users },
-      { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+      { name: 'Overview', href: '/dashboard', icon: Home },
+      { name: 'Livestock', href: '/dashboard/livestock', icon: Beef },
+      { name: 'Team', href: '/dashboard/team', icon: Users },
+      { name: 'Tasks', href: '/dashboard/tasks', icon: CheckSquare },
     ]
   },
   // Financial Management
   finance: {
     label: 'Finance',
     items: [
-      { name: 'Finance', href: '/finance', icon: DollarSign },
-      { name: 'Budget', href: '/budget', icon: Calculator },
-      { name: 'ROI', href: '/roi', icon: PieChart },
+      { name: 'Finance', href: '/dashboard/finance', icon: DollarSign },
+      { name: 'Budget', href: '/dashboard/budget', icon: Calculator },
+      { name: 'ROI', href: '/dashboard/roi', icon: PieChart },
     ]
   },
   // Planning & Analysis
   planning: {
     label: 'Planning',
     items: [
-      { name: 'Schedule', href: '/schedule', icon: Calendar },
-      { name: 'Goals', href: '/goals', icon: Target },
-      { name: 'Analytics', href: '/analytics', icon: BarChart2 },
+      { name: 'Schedule', href: '/dashboard/schedule', icon: Calendar },
+      { name: 'Goals', href: '/dashboard/goals', icon: Target },
+      { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart2 },
     ]
   },
   // Health & Records
   health: {
     label: 'Health & Records',
     items: [
-      { name: 'Health Records', href: '/health-records', icon: HeartPulse },
-      { name: 'Reports', href: '/reports', icon: FileText },
+      { name: 'Health Records', href: '/dashboard/health-records', icon: HeartPulse },
+      { name: 'Reports', href: '/dashboard/reports', icon: FileText },
     ]
   },
   // User
   user: {
     label: 'User',
     items: [
-      { name: 'Settings', href: '/settings', icon: Settings },
-      { name: 'Profile', href: '/profile', icon: User },
+      { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+      { name: 'Profile', href: '/dashboard/profile', icon: User },
     ]
   }
 };

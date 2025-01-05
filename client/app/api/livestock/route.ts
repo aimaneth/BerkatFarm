@@ -1,23 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getLivestock, toObjectId } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
-// Input validation schema
-const livestockSchema = z.object({
+const animalSchema = z.object({
   tag: z.string().min(1, 'Tag is required'),
-  type: z.string().min(1, 'Type is required'),
+  category: z.string().min(1, 'Category is required'),
   breed: z.string().min(1, 'Breed is required'),
-  status: z.enum(['HEALTHY', 'SICK', 'QUARANTINED', 'DECEASED']),
-  age: z.number().min(0, 'Age must be positive'),
-  weight: z.number().min(0, 'Weight must be positive'),
+  age: z.string().min(1, 'Age is required'),
+  weight: z.string().min(1, 'Weight is required'),
+  status: z.string().min(1, 'Status is required'),
   location: z.string().min(1, 'Location is required'),
-  lastCheckup: z.date().optional(),
-  nextCheckup: z.date().optional(),
-  purchaseDate: z.date(),
-  purchasePrice: z.number().min(0, 'Purchase price must be positive'),
-  notes: z.string().optional()
+  reproductiveStatus: z.string().min(1, 'Reproductive status is required'),
+  lastCheckup: z.string().transform(str => new Date(str)),
+  notes: z.string().optional(),
 });
 
 // GET /api/livestock
@@ -31,28 +28,56 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
-    const type = searchParams.get('type');
+    const category = searchParams.get('category');
     const status = searchParams.get('status');
+    const search = searchParams.get('search');
+    const sort = searchParams.get('sort') || 'createdAt';
+    const order = searchParams.get('order') || 'desc';
+    const fields = searchParams.get('fields')?.split(',');
 
-    const livestock = await getLivestock();
-    
-    // Build query
-    const query: any = {};
-    if (type) query.type = type;
-    if (status) query.status = status;
+    // Build where clause
+    const where: any = {};
+    if (category && category !== 'all') where.category = category;
+    if (status && status !== 'all') where.status = status;
+    if (search) {
+      where.OR = [
+        { tag: { contains: search, mode: 'insensitive' } },
+        { breed: { contains: search, mode: 'insensitive' } },
+        { notes: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Build select clause for field selection
+    const select = fields ? 
+      fields.reduce((acc, field) => ({ ...acc, [field]: true }), {}) :
+      undefined;
 
     // Get total count for pagination
-    const total = await livestock.countDocuments(query);
+    const total = await prisma.animal.count({ where });
 
-    // Get paginated results
-    const items = await livestock.find(query)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .toArray();
+    // Get paginated results with dynamic sorting
+    const animals = await prisma.animal.findMany({
+      where,
+      select,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { [sort]: order },
+      include: !select ? {
+        _count: {
+          select: {
+            healthRecords: true,
+            productionRecords: true,
+            weightRecords: true,
+            movementRecords: true,
+            breedingRecords: true,
+            feedRecords: true,
+          },
+        },
+      } : undefined,
+    });
 
     return NextResponse.json({
-      items,
+      items: animals,
       page,
       limit,
       total,
@@ -63,13 +88,13 @@ export async function GET(request: NextRequest) {
         last: `/api/livestock?page=${Math.ceil(total / limit)}&limit=${limit}`,
         next: page < Math.ceil(total / limit) ? `/api/livestock?page=${page + 1}&limit=${limit}` : null,
         prev: page > 1 ? `/api/livestock?page=${page - 1}&limit=${limit}` : null,
-        stats: '/api/stats/livestock'
+        batch: '/api/livestock/batch'
       }
     });
   } catch (error) {
     console.error('Failed to fetch livestock:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch livestock' },
+      { error: 'Failed to fetch livestock', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -84,43 +109,52 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const validatedData = livestockSchema.parse(body);
-    
-    const livestock = await getLivestock();
+    const validatedData = animalSchema.parse(body);
     
     // Check if tag already exists
-    const existingLivestock = await livestock.findOne({ tag: validatedData.tag });
-    if (existingLivestock) {
+    const existingAnimal = await prisma.animal.findUnique({
+      where: { tag: validatedData.tag }
+    });
+
+    if (existingAnimal) {
       return NextResponse.json(
-        { error: 'A livestock with this tag already exists' },
+        { error: 'An animal with this tag already exists' },
         { status: 409 }
       );
     }
 
-    // Create livestock
-    const result = await livestock.insertOne({
-      ...validatedData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: session.user.id
+    const animal = await prisma.animal.create({
+      data: validatedData,
+      include: {
+        _count: {
+          select: {
+            healthRecords: true,
+            productionRecords: true,
+            weightRecords: true,
+            movementRecords: true,
+            breedingRecords: true,
+            feedRecords: true,
+          },
+        },
+      },
     });
 
-    if (!result.acknowledged) {
-      throw new Error('Failed to create livestock');
-    }
-
-    const created = await livestock.findOne({ _id: result.insertedId });
-
     return NextResponse.json({
-      message: 'Livestock created successfully',
-      livestock: created,
+      message: 'Animal created successfully',
+      animal,
       _links: {
-        self: `/api/livestock/${result.insertedId}`,
-        collection: '/api/livestock'
+        self: `/api/livestock/${animal.id}`,
+        collection: '/api/livestock',
+        healthRecords: `/api/livestock/${animal.id}/health-records`,
+        breedingRecords: `/api/livestock/${animal.id}/breeding-records`,
+        weightRecords: `/api/livestock/${animal.id}/weight-records`,
+        movementRecords: `/api/livestock/${animal.id}/movement-records`,
+        productionRecords: `/api/livestock/${animal.id}/production-records`,
+        feedRecords: `/api/livestock/${animal.id}/feed-records`
       }
     }, { status: 201 });
   } catch (error) {
-    console.error('Livestock creation error:', error);
+    console.error('Animal creation error:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -136,73 +170,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to create livestock' },
-      { status: 500 }
-    );
-  }
-}
-
-// PUT /api/livestock/[id]
-export async function PUT(request: Request) {
-  try {
-    const id = request.url.split('/').pop();
-    if (!id) throw new Error('No ID provided');
-
-    const data = await request.json();
-    const collection = await getLivestock();
-
-    const result = await collection.findOneAndUpdate(
-      { _id: toObjectId(id) },
-      {
-        $set: {
-          ...data,
-          updatedAt: new Date(),
-        },
-      },
-      { returnDocument: 'after' }
-    );
-
-    if (!result || !result.value) {
-      return NextResponse.json(
-        { error: 'Livestock not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(result.value);
-  } catch (error) {
-    console.error('Failed to update livestock:', error);
-    return NextResponse.json(
-      { error: 'Failed to update livestock' },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE /api/livestock/[id]
-export async function DELETE(request: Request) {
-  try {
-    const id = request.url.split('/').pop();
-    if (!id) throw new Error('No ID provided');
-
-    const collection = await getLivestock();
-
-    const result = await collection.findOneAndDelete({
-      _id: toObjectId(id),
-    });
-
-    if (!result || !result.value) {
-      return NextResponse.json(
-        { error: 'Livestock not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Failed to delete livestock:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete livestock' },
+      { error: 'Failed to create animal', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

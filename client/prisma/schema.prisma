@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// @model
+model Animal {
+  id                String    @id @default(cuid())
+  tag               String    @unique
+  category          String
+  breed             String
+  age               String
+  weight            String
+  status            String
+  location          String
+  reproductiveStatus String
+  lastCheckup       DateTime
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  healthRecords     HealthRecord[]
+  productionRecords ProductionRecord[]
+  weightRecords     WeightRecord[]
+  movementRecords   MovementRecord[]
+  breedingRecords   BreedingRecord[]
+  feedRecords       FeedRecord[]
+}
+
+/// @model
+model HealthRecord {
+  id          String   @id @default(cuid())
+  date        DateTime
+  type        String
+  description String
+  treatment   String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId    String
+}
+
+/// @model
+model ProductionRecord {
+  id          String   @id @default(cuid())
+  date        DateTime
+  type        String
+  quantity    String
+  quality     String
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId    String
+}
+
+/// @model
+model WeightRecord {
+  id          String   @id @default(cuid())
+  date        DateTime
+  weight      String
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId    String
+}
+
+/// @model
+model MovementRecord {
+  id          String   @id @default(cuid())
+  date        DateTime
+  fromLocation String
+  toLocation  String
+  reason      String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId    String
+}
+
+/// @model
+model BreedingRecord {
+  id          String   @id @default(cuid())
+  date        DateTime
+  type        String
+  outcome     String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId    String
+}
+
+/// @model
+model FeedRecord {
+  id          String   @id @default(cuid())
+  date        DateTime
+  type        String
+  quantity    String
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId    String
+}

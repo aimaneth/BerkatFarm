@@ -1,0 +1,188 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Animal {
+  id                String    @id @default(cuid())
+  name              String
+  type              String
+  breed             String?
+  gender            String
+  birthDate         DateTime?
+  weight            String?
+  status            String
+  location          String?
+  isQuarantined     Boolean   @default(false)
+  quarantineLocation String?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  healthRecords     HealthRecord[]
+  weightRecords     WeightRecord[]
+  feedRecords       FeedRecord[]
+  productionRecords ProductionRecord[]
+  movementRecords   MovementRecord[]
+  breedingRecords   BreedingRecord[]    @relation("AnimalBreedingRecords")
+  partnerRecords    BreedingRecord[]    @relation("BreedingPartner")
+  quarantineRecords QuarantineRecord[]
+}
+
+model HealthRecord {
+  id            String    @id @default(cuid())
+  date          DateTime
+  type          String
+  description   String
+  treatment     String?
+  cost          String?
+  notes         String?
+  nextCheckupDate DateTime?
+  veterinarianId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  animal        Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId      String
+  veterinarian  Veterinarian? @relation(fields: [veterinarianId], references: [id])
+
+  @@index([animalId])
+  @@index([veterinarianId])
+}
+
+model WeightRecord {
+  id        String    @id @default(cuid())
+  date      DateTime
+  weight    String
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  animal    Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId  String
+
+  @@index([animalId])
+}
+
+model FeedRecord {
+  id        String    @id @default(cuid())
+  date      DateTime
+  feedType  String
+  quantity  String
+  unit      String
+  cost      String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  animal    Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId  String
+
+  @@index([animalId])
+}
+
+model ProductionRecord {
+  id        String    @id @default(cuid())
+  date      DateTime
+  type      String
+  quantity  String
+  quality   String
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  animal    Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId  String
+
+  @@index([animalId])
+}
+
+model MovementRecord {
+  id              String    @id @default(cuid())
+  date            DateTime
+  type            String
+  fromLocation    String
+  toLocation      String
+  reason          String?
+  transportMethod String?
+  cost            String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  animal          Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId        String
+
+  @@index([animalId])
+}
+
+model BreedingRecord {
+  id              String    @id @default(cuid())
+  date            DateTime
+  type            String
+  expectedDueDate DateTime?
+  outcome         String?
+  offspringCount  String?
+  notes           String?
+  cost            String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  animal          Animal    @relation("AnimalBreedingRecords", fields: [animalId], references: [id], onDelete: Cascade)
+  animalId        String
+  partner         Animal?   @relation("BreedingPartner", fields: [partnerId], references: [id])
+  partnerId       String?
+
+  @@index([animalId])
+  @@index([partnerId])
+}
+
+model QuarantineRecord {
+  id              String    @id @default(cuid())
+  startDate       DateTime
+  endDate         DateTime?
+  reason          String
+  location        String
+  status          String
+  notes           String?
+  cost            String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  animal          Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animalId        String
+  veterinarian    Veterinarian? @relation(fields: [veterinarianId], references: [id])
+  veterinarianId  String?
+
+  @@index([animalId])
+  @@index([veterinarianId])
+}
+
+model Veterinarian {
+  id              String    @id @default(cuid())
+  name            String
+  contact         String?
+  specialization  String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  healthRecords     HealthRecord[]
+  quarantineRecords QuarantineRecord[]
+} 

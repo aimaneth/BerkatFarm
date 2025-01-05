@@ -13,14 +13,14 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/Form';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/Select';
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -38,7 +38,7 @@ import {
   X,
   MapPin
 } from 'lucide-react';
-import { Textarea } from '@/components/ui/Textarea';
+import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
   avatar: z.any().optional(),

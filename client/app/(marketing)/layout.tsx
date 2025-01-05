@@ -1,23 +1,18 @@
-import { ReactNode } from 'react';
-import { Navigation } from '@/components/layout/Navigation';
-import { MainNavWrapper } from '@/components/layout/MainNavWrapper';
-import { ScrollProgress } from '@/components/ui/ScrollProgress';
-import { CustomCursor } from '@/components/ui/CustomCursor';
+'use client';
 
-interface MarketingLayoutProps {
-  children: ReactNode;
-}
+import { MarketingNav } from '@/components/marketing/MarketingNav';
+import { MarketingFooter } from '@/components/marketing/MarketingFooter';
 
-export default function MarketingLayout({ children }: MarketingLayoutProps) {
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <>
-      <Navigation />
-      <MainNavWrapper />
-      <main>
-        {children}
-      </main>
-      <ScrollProgress />
-      <CustomCursor />
-    </>
+    <div className="flex min-h-screen flex-col">
+      <MarketingNav />
+      <main className="flex-1">{children}</main>
+      <MarketingFooter />
+    </div>
   );
 } 

@@ -10,12 +10,13 @@ const DEVELOPMENT_MODE = true;
 
 const ROLE_ROUTES: Record<string, UserRole[]> = {
   '/': ['ADMIN', 'MANAGER', 'STAFF', 'VETERINARIAN', 'ACCOUNTANT', 'SUPERVISOR'],
-  '/team': ['ADMIN', 'MANAGER', 'SUPERVISOR'],
-  '/livestock': ['ADMIN', 'MANAGER', 'VETERINARIAN', 'STAFF'],
-  '/distribution': ['ADMIN', 'MANAGER', 'STAFF'],
-  '/finance': ['ADMIN', 'MANAGER', 'ACCOUNTANT'],
-  '/settings': ['ADMIN', 'MANAGER'],
-  '/profile': ['ADMIN', 'MANAGER', 'STAFF', 'VETERINARIAN', 'ACCOUNTANT', 'SUPERVISOR']
+  '/dashboard': ['ADMIN', 'MANAGER', 'STAFF', 'VETERINARIAN', 'ACCOUNTANT', 'SUPERVISOR'],
+  '/dashboard/team': ['ADMIN', 'MANAGER', 'SUPERVISOR'],
+  '/dashboard/livestock': ['ADMIN', 'MANAGER', 'VETERINARIAN', 'STAFF'],
+  '/dashboard/distribution': ['ADMIN', 'MANAGER', 'STAFF'],
+  '/dashboard/finance': ['ADMIN', 'MANAGER', 'ACCOUNTANT'],
+  '/dashboard/settings': ['ADMIN', 'MANAGER'],
+  '/dashboard/profile': ['ADMIN', 'MANAGER', 'STAFF', 'VETERINARIAN', 'ACCOUNTANT', 'SUPERVISOR']
 };
 
 export default withAuth(
