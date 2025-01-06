@@ -7,7 +7,7 @@ import { UserRole } from '@/shared/types/auth';
 const PUBLIC_PATHS = ['/', '/about', '/contact', '/products', '/features', '/pricing'];
 
 // Auth paths (login/register)
-const AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/error', '/(auth)/login', '/(auth)/register', '/(auth)/error'];
+const AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/error'];
 
 const ROLE_ROUTES: Record<string, UserRole[]> = {
   '/dashboard': ['ADMIN', 'MANAGER', 'STAFF', 'VETERINARIAN', 'ACCOUNTANT', 'SUPERVISOR'],
@@ -69,15 +69,6 @@ export default withAuth(
 // Update the matcher to handle route groups correctly
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public directory)
-     * - images (image files)
-     * - api routes
-     */
-    '/((?!_next/static|_next/image|favicon.ico|public/|images/|api/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public/|images/|api/).*)'
   ]
 }; 

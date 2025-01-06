@@ -165,25 +165,29 @@ export default function MarketingPage() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-              <Link href="/(auth)/register">
+              <Link href="/register" className="w-full sm:w-auto">
                 <Button 
                   size="lg" 
-                  className="w-full sm:w-auto bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-500 hover:to-teal-400 text-emerald-900 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 gap-2 group relative overflow-hidden px-8 py-6"
+                  className="w-full bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-500 hover:to-teal-400 text-emerald-900 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 gap-2 group relative overflow-hidden px-8 py-6"
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/40 to-white/0 animate-shine" />
                   <span className="relative">Get Started</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Link href="/(auth)/login">
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="w-full sm:w-auto border-2 border-white/20 text-white hover:bg-white/10 backdrop-blur-lg hover:border-white/40 transition-all duration-300 px-8 py-6"
-                >
-                  Sign In
-                </Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="w-full sm:w-auto border-2 border-white/20 text-white hover:bg-white/10 backdrop-blur-lg hover:border-white/40 transition-all duration-300 px-8 py-6"
+                onClick={() => {
+                  const contactSection = document.querySelector('#contact');
+                  if (contactSection) {
+                    contactSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
+                Contact Sales
+              </Button>
             </div>
 
             {/* Feature Cards */}
@@ -671,7 +675,7 @@ export default function MarketingPage() {
                       ))}
                     </ul>
                     <div className="mt-8">
-                      <Link href="/(auth)/register">
+                      <Link href="/register" className="w-full">
                         <Button 
                           className={`w-full ${plan.popular 
                             ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-emerald-950 hover:from-emerald-500 hover:to-teal-500' 
@@ -723,7 +727,7 @@ export default function MarketingPage() {
                 </button>
               </div>
             ))}
-          </div>
+              </div>
             </div>
       </section>
 
@@ -839,25 +843,29 @@ export default function MarketingPage() {
               Join thousands of successful farmers who have already modernized their operations with FarmSoul
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-              <Link href="/(auth)/register">
+              <Link href="/register" className="w-full sm:w-auto">
                 <Button 
                   size="lg" 
-                  className="w-full sm:w-auto bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-500 hover:to-teal-400 text-emerald-900 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 gap-2 group relative overflow-hidden px-8 py-6"
+                  className="w-full bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-500 hover:to-teal-400 text-emerald-900 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 gap-2 group relative overflow-hidden px-8 py-6"
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/40 to-white/0 animate-shine" />
                   <span className="relative">Start Free Trial</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Link href="#contact">
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="w-full sm:w-auto border-2 border-white/20 text-white hover:bg-white/10 backdrop-blur-lg hover:border-white/40 transition-all duration-300 px-8 py-6"
-                >
-                  Contact Sales
-            </Button>
-          </Link>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="w-full sm:w-auto border-2 border-white/20 text-white hover:bg-white/10 backdrop-blur-lg hover:border-white/40 transition-all duration-300 px-8 py-6"
+                onClick={() => {
+                  const contactSection = document.querySelector('#contact');
+                  if (contactSection) {
+                    contactSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
+                Contact Sales
+              </Button>
             </div>
             <p className="text-sm text-emerald-100/60">
               Save 20% with annual billing • 14-day free trial • Special rates for agricultural cooperatives

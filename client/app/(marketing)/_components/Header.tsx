@@ -33,13 +33,18 @@ export function Header() {
                 Contact
               </Link>
               <div className="flex items-center gap-4 pl-4 border-l border-white/10">
-                <Link href="/(auth)/login" className="contents">
-                  <Button variant="ghost" className="text-emerald-100 hover:bg-emerald-100/10 hover:text-white">
+                <Link href="/login">
+                  <Button 
+                    variant="ghost" 
+                    className="text-emerald-100 hover:bg-emerald-100/10 hover:text-white"
+                  >
                     Sign In
                   </Button>
                 </Link>
-                <Link href="/(auth)/register" className="contents">
-                  <Button className="bg-gradient-to-r from-emerald-400 to-teal-400 text-emerald-950 hover:from-emerald-500 hover:to-teal-500 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30">
+                <Link href="/register">
+                  <Button 
+                    className="bg-gradient-to-r from-emerald-400 to-teal-400 text-emerald-950 hover:from-emerald-500 hover:to-teal-500 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30"
+                  >
                     Get Started
                   </Button>
                 </Link>

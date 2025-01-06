@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRightIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { signIn } from 'next-auth/react';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -23,7 +24,8 @@ export default function RegisterPage() {
     const password = formData.get('password') as string;
 
     try {
-      const res = await fetch('/api/auth/register', {
+      // First register the user
+      const registerRes = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,10 +37,23 @@ export default function RegisterPage() {
         }),
       });
 
-      if (res.ok) {
-        router.push('/auth/login');
+      if (registerRes.ok) {
+        // If registration is successful, automatically sign them in
+        const signInResult = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
+
+        if (signInResult?.error) {
+          setError('Registration successful but login failed. Please try logging in manually.');
+          router.push('/login');
+        } else {
+          // Registration and login successful, redirect to dashboard
+          router.push('/dashboard');
+        }
       } else {
-        const data = await res.json();
+        const data = await registerRes.json();
         setError(data.error || 'Registration failed');
       }
     } catch (error) {
@@ -94,7 +109,7 @@ export default function RegisterPage() {
             </h2>
             <p className="mt-2 text-sm text-gray-600">
               Already have an account?{' '}
-              <Link href="/auth/login" className="font-medium text-emerald-600 hover:text-emerald-500">
+              <Link href="/login" className="font-medium text-emerald-600 hover:text-emerald-500">
                 Sign in
               </Link>
             </p>
