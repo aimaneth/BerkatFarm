@@ -146,7 +146,7 @@ export default function MarketingPage() {
             {/* Title with Enhanced Animation */}
             <div className="relative py-4">
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-transparent to-emerald-500/20 blur-3xl animate-gradient-shift" />
-              <h1 className="text-6xl lg:text-8xl font-bold relative">
+              <h1 className="text-5xl lg:text-8xl font-bold relative">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-100 to-white animate-text-shine inline-block mb-6">
                   Transform Your
                 </span>
@@ -158,7 +158,7 @@ export default function MarketingPage() {
             </div>
 
             {/* Description */}
-            <p className="text-xl text-gray-200 leading-relaxed max-w-3xl mx-auto font-light">
+            <p className="text-base sm:text-lg lg:text-xl text-gray-200 leading-relaxed max-w-3xl mx-auto font-light px-4">
               Streamline your agricultural business with our comprehensive management solution. 
               Track livestock, manage teams, and optimize performance all in one place.
             </p>
