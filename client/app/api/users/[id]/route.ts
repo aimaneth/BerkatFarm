@@ -181,4 +181,52 @@ export async function DELETE(
       { status: 500 }
     );
   }
+}
+
+// PATCH /api/users/[id]
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const body = await req.json();
+    const { role } = body;
+
+    if (!role) {
+      return NextResponse.json(
+        { error: 'Role is required' },
+        { status: 400 }
+      );
+    }
+
+    const users = await getUsers();
+
+    // Update user role
+    const result = await users.updateOne(
+      { email: "aiman.eth@proton.me" },
+      { 
+        $set: { 
+          role: "ADMIN",
+          updatedAt: new Date()
+        } 
+      }
+    );
+
+    if (!result.matchedCount) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      message: 'User role updated successfully'
+    });
+  } catch (error) {
+    console.error('Update user error:', error);
+    return NextResponse.json(
+      { error: 'Failed to update user' },
+      { status: 500 }
+    );
+  }
 } 
